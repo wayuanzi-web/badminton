@@ -68,10 +68,64 @@ function normalize(s) {
   };
 }
 const firstRead = store.read();
+const startedEmpty = store.ok && store.empty;        // 開啟時 localStorage 裡沒有這個 App 的資料
 let S = normalize(firstRead);
-function save() { store.write(S); }
-/* 第一次開啟就把預設值存下來，計畫開始日才不會隨著日子往後漂 */
-if (store.ok && store.empty) save();
+
+/* ---------- 第二份備份（IndexedDB） ----------
+   放在 GitHub Pages 這類主機上時，同一個帳號的其他網站和這個 App 共用同一個網域的 localStorage，
+   別的網站一清，這裡的紀錄也跟著不見。所以每次存檔都在 IndexedDB 另放一份；
+   開啟時如果 localStorage 是空的、而那裡有資料，就自動還原。只有獨立網頁版使用。 */
+const mirror = {
+  on: STANDALONE && typeof indexedDB !== 'undefined' && !!indexedDB,
+  ready: false,                  // 開啟時的比對做完之前不寫入，免得把還沒讀到的那一份蓋掉
+  db: null, timer: null,
+  open() {
+    return new Promise((ok, no) => {
+      let rq;
+      try { rq = indexedDB.open('badminton-handbook', 1); } catch (e) { no(e); return; }
+      rq.onupgradeneeded = () => { try { rq.result.createObjectStore('kv'); } catch (e) { /* 已經有了 */ } };
+      rq.onsuccess = () => ok(rq.result);
+      rq.onerror = () => no(rq.error);
+      rq.onblocked = () => no(new Error('blocked'));
+    });
+  },
+  get() {
+    return new Promise((ok, no) => {
+      let rq;
+      try { rq = this.db.transaction('kv').objectStore('kv').get('state'); } catch (e) { no(e); return; }
+      rq.onsuccess = () => ok(rq.result);
+      rq.onerror = () => no(rq.error);
+    });
+  },
+  write(text, key) {
+    try { this.db.transaction('kv', 'readwrite').objectStore('kv').put(text, key); } catch (e) { /* 寫不進去就算了，localStorage 那一份還在 */ }
+  },
+  put() { if (this.on && this.ready && this.db) this.write(JSON.stringify(S), 'state'); },
+  queue() { if (!this.on || !this.ready) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.put(), 300); },
+  flush() { if (this.timer) { clearTimeout(this.timer); this.timer = null; this.put(); } }
+};
+const hasData = s => !!(s.setup || s.logs.length || s.arch.length || Object.keys(s.day).length || Object.keys(s.tests).length || Object.keys(s.over).length);
+function save() { store.write(S); mirror.queue(); }
+/* 第一次開啟就把預設值存下來，計畫開始日才不會隨著日子往後漂。有第二份備份可查時，先查過再存（mirrorStart） */
+if (startedEmpty && !mirror.on) save();
+/* 啟動時呼叫一次。onRestore：從第二份備份還原之後，讓畫面重畫 */
+function mirrorStart(onRestore) {
+  if (!mirror.on) return;
+  let saved = false;
+  const firstRun = () => { if (startedEmpty && !saved) { saved = true; store.write(S); } };
+  const slow = setTimeout(firstRun, 1500);                           // 第二份遲遲讀不到：先照第一次使用處理
+  mirror.open().then(db => { mirror.db = db; return mirror.get(); }).then(text => {
+    clearTimeout(slow);
+    let back = null;
+    try { back = typeof text === 'string' && text ? normalize(JSON.parse(text)) : null; } catch (e) { back = null; }
+    if (startedEmpty && back && hasData(back)) {
+      if (!hasData(S)) { S = back; saved = true; store.write(S); mirror.ready = true; onRestore(); return; }
+      mirror.write(text, 'state-prev');                              // 使用者已經動手了：舊的那一份另外留著，不直接蓋掉
+    }
+    firstRun();
+    mirror.ready = true; mirror.put();
+  }).catch(() => { clearTimeout(slow); mirror.on = false; firstRun(); });
+}
 
 const UI = { tab: 'today', menuSeg: 'menus', menuWhere: 'all', exCat: 'all', exQ: '', learn: null, planWeek: null, chartTable: false, hintOff: false, instOff: false };
 
@@ -269,6 +323,11 @@ const onWeb = () => { try { return STANDALONE && (window.location.protocol === '
 const inApp = () => { try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; } catch (e) { return false; } };   // 已經是從主畫面開啟
 const isIOS = () => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); } catch (e) { return false; } };
 const IOS_STEPS = '用 Safari 開這個網址，按分享鈕，選「加入主畫面」。';
+/* LINE、Facebook、Instagram、微信的內建瀏覽器：不能加到主畫面，要先換到手機的瀏覽器 */
+const inWebView = () => { try { return /\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent); } catch (e) { return false; } };
+const WEBVIEW_STEPS = '這是 LINE 這類 App 的內建瀏覽器，不能加到主畫面。點右上角的選單，選「以預設瀏覽器開啟」，再從那裡安裝。';
+/* 分享用的網址。openExternalBrowser=1 會讓 LINE 直接用手機的瀏覽器開啟連結 */
+const shareUrl = () => { try { return window.location.origin + window.location.pathname + '?openExternalBrowser=1'; } catch (e) { return ''; } };
 
 /* 沙盒環境可能不允許某些功能；先問過再用，避免在主控台留下錯誤 */
 function allowed(feature) {

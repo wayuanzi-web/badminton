@@ -1,6 +1,6 @@
 /* 羽球訓練手冊：離線快取 */
 const PREFIX = 'badminton-handbook-';
-const CACHE = PREFIX + '48510acbb2dd';
+const CACHE = PREFIX + '6d87a6f277cb';
 const SHELL = './';
 const FILES = ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 const scope = self.registration.scope;                 // 這個 App 所在的資料夾網址，結尾是 /

@@ -5,5 +5,6 @@
   "scripts": {
     "build": "node build.mjs --site .",
     "test": "node test/logic.test.mjs && node test/contrast.mjs"
-  }
+  },
+  "homepage": "https://wayuanzi-web.github.io/badminton/"
 }

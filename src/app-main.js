@@ -184,7 +184,7 @@ function settingsBody() {
     '<div class="field"><span class="lbl">平常打的計分制</span><div class="seg wide" role="group" aria-label="計分制"><button type="button" data-act="setSys" data-v="21" aria-pressed="' + (st.sys === 21) + '">21 分制</button><button type="button" data-act="setSys" data-v="15" aria-pressed="' + (st.sys === 15) + '">15 分制</button></div></div>' +
     '<label class="toggle" for="s-sound"><span>計時提示音</span><input type="checkbox" id="s-sound" data-chg="sound"' + (st.sound ? ' checked' : '') + '></label>' +
     '<label class="toggle" for="s-voice"><span>步法點位用語音喊</span><input type="checkbox" id="s-voice" data-chg="voice"' + (st.voice ? ' checked' : '') + '></label>' +
-    installHTML() + '</div>';
+    installHTML() + shareHTML() + '</div>';
 }
 
 /* 裝到主畫面：Android 和桌機的 Chrome、Edge 會給一個事件，按鈕可以直接跳出安裝視窗；其他瀏覽器只能用文字說明 */
@@ -194,9 +194,18 @@ function installHTML() {
   const after = '裝好之後從主畫面開啟，是全螢幕，沒有網路也能用。';
   let body;
   if (installEvt) body = '<span class="small muted">' + after + '</span><div><button class="btn sm" type="button" data-act="install">安裝到這台裝置</button></div>';
+  else if (inWebView()) body = '<span class="small muted">' + WEBVIEW_STEPS + '</span>';
   else if (isIOS()) body = '<span class="small muted">' + IOS_STEPS + after + '主畫面版本和 Safari 的資料是分開存的，換過去之前先到「紀錄」分頁備份，再到主畫面版本裡還原。</span>';
   else body = '<span class="small muted">在瀏覽器的選單裡選「安裝」或「加到主畫面」。' + after + '</span>';
   return '<div class="field"><span class="lbl">裝到主畫面</span>' + body + '</div>';
+}
+/* 分享給球友：放在網址上才有東西可以分享 */
+function shareHTML() {
+  if (!onWeb()) return '';
+  return '<div class="field"><label for="s-share">分享給球友</label>' +
+    '<span class="small muted">對方不用註冊，點開連結就能用。每個人的紀錄只存在自己的手機裡，互相看不到。</span>' +
+    '<input class="inp" id="s-share" type="text" readonly value="' + esc(shareUrl()) + '">' +
+    '<div><button class="btn sm ghost" type="button" data-act="share">分享連結</button></div></div>';
 }
 function refreshInstall() {                                  // 設定面板開著時，安裝狀態一變就重畫
   const el = document.querySelector('dialog[open] #s-start'), d = el && el.closest('dialog');
@@ -311,6 +320,24 @@ const ACT = {
   },
   hintOff: () => { UI.hintOff = true; S.setup = true; save(); render(true); },
   instOff: () => { UI.instOff = true; render(true); },
+  share: el => {
+    const url = shareUrl(), box = $('#s-share', el.closest('dialog'));
+    const pick = () => { if (box) { box.focus(); box.select(); } toast('已選取連結，請按複製'); };
+    const copy = () => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText && allowed('clipboard-write')) navigator.clipboard.writeText(url).then(() => toast('已複製連結，貼給球友就能用'), pick);
+        else pick();
+      } catch (e) { pick(); }
+    };
+    /* 手機有系統的分享選單就用它（可以直接選 LINE）；沒有就複製連結 */
+    try {
+      if (navigator.share) {
+        navigator.share({ title: '羽球訓練手冊', text: '羽球訓練計畫、菜單和計分工具。不用註冊，點開就能用。', url }).catch(e => { if (!e || e.name !== 'AbortError') copy(); });
+        return;
+      }
+    } catch (e) { /* 改用複製 */ }
+    copy();
+  },
   install: () => {
     const ev = installEvt;
     if (!ev || typeof ev.prompt !== 'function') return;
@@ -479,10 +506,11 @@ document.addEventListener('focusout', e => {
   if (el && el.id === 's-start' && el.value !== S.set.start) el.value = S.set.start;
 });
 
+window.addEventListener('pagehide', () => mirror.flush());
 let rsT = null;
 window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (UI.tab === 'log') drawChart(); }, 150); });
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
+  if (document.visibilityState !== 'visible') { mirror.flush(); return; }     // 切到背景前，把還沒寫的第二份備份寫完
   if (wakeWant) wakeReq();                               // 切回來時螢幕恆亮已經被系統收回，計時中就再要一次
   if (renderedDay && renderedDay !== todayStr() && !document.querySelector('dialog[open]')) render(true);
 });
@@ -496,6 +524,7 @@ function init() {
   try { h = (window.location.hash || '').replace('#', ''); } catch (e) { h = ''; }
   if (TABS.some(t => t[0] === h)) UI.tab = h;
   render();
+  mirrorStart(() => { UI.planWeek = null; render(); toast('這台裝置上的紀錄曾被清除，已自動還原'); });
   if (STANDALONE) {
     try {
       const secure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';

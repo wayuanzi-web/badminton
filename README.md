@@ -4,7 +4,7 @@
 
 **https://wayuanzi-web.github.io/badminton/**
 
-傳給 LINE 上的球友時，網址後面加 `?openExternalBrowser=1`，連結會用手機的瀏覽器開啟（LINE 內建瀏覽器不能安裝到主畫面）。
+傳給 LINE 上的球友時，網址後面加 `?openExternalBrowser=1`，連結會用手機的瀏覽器開啟（LINE 內建瀏覽器不能安裝到主畫面）。App 的設定最下面有「分享連結」，按了就是這個網址。
 
 ## 裝到手機
 
@@ -25,21 +25,21 @@
 
 設定、打勾、訓練紀錄只存在那台裝置的瀏覽器（或主畫面 App）裡，不會上傳。換裝置用「紀錄」分頁的備份與還原。
 
-這個網址和同帳號的其他 GitHub Pages 網站（`wayuanzi-web.github.io/…`）共用同一個網域的瀏覽器儲存空間。其他網站如果清除整個網域的資料，這裡的紀錄也會被清掉，所以偶爾備份一次。
+這個網址和同帳號的其他 GitHub Pages 網站（`wayuanzi-web.github.io/…`）共用同一個網域的瀏覽器儲存空間，別的網站清掉整個網域的 `localStorage` 時，這裡的也會被清掉。所以 App 每次存檔都在 IndexedDB 另放一份，開啟時發現 `localStorage` 空了就自動還原。這只防得了同網域其他網站的清除；在瀏覽器設定裡清除網站資料、或移除主畫面的 App，兩份都會消失，所以偶爾還是備份一次。
 
 ## 檔案
 
 | 路徑 | 內容 |
 | --- | --- |
 | `index.html` `sw.js` `manifest.webmanifest` | 上線的網頁 App，由建置腳本產生，不要直接改 |
-| `icon-*.png` `apple-touch-icon.png` | App 圖示 |
+| `icon-*.png` `apple-touch-icon.png` `og.png` | App 圖示與連結預覽圖 |
 | `src/data-plan.js` | 課表、12 週計畫、日常菜單、檢測項目 |
 | `src/data-ex.js` | 動作庫：80 個動作的說明、要點、常見錯誤、影片搜尋字 |
 | `src/data-learn.js` | 知識文章與飲食文章 |
 | `src/logic.js` | 純邏輯：日期、排課、份量、計時序列、計分、統計、資料清洗 |
 | `src/app-*.js` `src/styles.css` `src/body.html` | 畫面、工具、操作處理、樣式 |
 | `build.mjs` | 建置腳本 |
-| `build/` | 內嵌的數字字型（Barlow Condensed 子集，授權見 `build/fonts/OFL.txt`）、圖示產生腳本 |
+| `build/` | 內嵌的數字字型（Barlow Condensed 子集，授權見 `build/fonts/OFL.txt`）、圖示與預覽圖的產生腳本 |
 | `test/` | 測試 |
 
 ## 修改與上線
@@ -58,6 +58,8 @@ GitHub Pages 從 `main` 分支根目錄發布，推上去約一分鐘後生效�
 - 項目加 `lv: 1` 表示中階以上才出現，`mx: 0` 表示只有入門出現。
 - 建置時會檢查每個課表引用的動作是否存在，有錯會直接失敗。
 - 圖示要重畫才執行 `node build/icons.cjs`（需要 `sharp`），再把 `out/site/` 裡的四張 PNG 複製到根目錄。
+- 連結預覽圖要重畫才執行 `node build/og.cjs`（需要 `playwright` 和繁體中文字型），直接輸出根目錄的 `og.png`。
+- 公開網址寫在 `package.json` 的 `homepage`，建置時用來產生連結預覽的標籤；搬家時改這裡，或用 `--url` 指定。
 
 建置同時會產生：
 
@@ -69,7 +71,8 @@ GitHub Pages 從 `main` 分支根目錄發布，推上去約一分鐘後生效�
 - `sw.js` 安裝時把頁面、manifest、四張圖示存進快取。之後一律先回快取，同時在背景向主機要新的存起來，所以球館訊號很差時也是立刻開啟。
 - 快取名稱帶內容雜湊。內容一變，`sw.js` 跟著變，瀏覽器會裝新的、刪掉舊快取。
 - 只處理自己的檔案、只清自己的快取（名稱以 `badminton-handbook-` 開頭），不影響同網域的其他網站。
-- 資料存在 `localStorage` 的 `badminton-handbook-v1`。讀進來的資料（含貼上的備份）一律經過 `normalize()` 逐欄清洗；畫面輸出一律跳脫。
+- 資料存在 `localStorage` 的 `badminton-handbook-v1`，另一份在 IndexedDB 的 `badminton-handbook` 資料庫。讀進來的資料（含貼上的備份、第二份備份）一律經過 `normalize()` 逐欄清洗；畫面輸出一律跳脫。
+- 頁面用 `<meta>` 設了內容安全政策：只能載入和連線到自己的網址，不能載入外部程式或把資料送到別處。連出去的連結不帶來源網址，也不讓搜尋引擎收錄。
 
 ## 測試
 
@@ -79,7 +82,7 @@ node test/contrast.mjs                        # 文字與控制項對比
 NODE_PATH=<含 playwright 的 node_modules> node test/flows.cjs       # 主要操作流程
 NODE_PATH=... node test/hardening.cjs         # 惡意備份、錯誤資料、鍵盤、窄螢幕
 NODE_PATH=... node test/site.cjs              # 獨立版：離線、manifest、下載備份（先在 out/site 開 http.server 8765）
-NODE_PATH=... node test/pwa.cjs [網址]        # 可安裝性、離線、訊號差、更新、子資料夾、安裝入口
+NODE_PATH=... node test/pwa.cjs [網址]        # 可安裝性、離線、訊號差、更新、子資料夾、安裝入口、分享、第二份備份、安全政策
                                               # 自帶測試主機；加上網址會另外檢查那個真正的主機
 ```
 

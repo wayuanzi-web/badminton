@@ -10,6 +10,11 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const rd = f => fs.readFileSync(path.join(root, f), 'utf8');
+/* 公開網址：連結預覽圖（og:image）要寫完整網址。取自 --url，沒給就用 package.json 的 homepage */
+const arg = name => { const i = process.argv.indexOf(name); return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : null; };
+let BASE = arg('--url') || '';
+if (!BASE) { try { BASE = JSON.parse(rd('package.json')).homepage || ''; } catch (e) { BASE = ''; } }
+if (BASE && !BASE.endsWith('/')) BASE += '/';
 const TITLE = '羽球訓練手冊';
 const SHORT = '羽球手冊';              // 手機主畫面圖示下方的名字，太長會被截斷
 const DESC = '羽球 12 週訓練計畫、日常菜單、規則與技術知識、計時與計分工具。資料只存在你的裝置。';
@@ -40,6 +45,8 @@ fs.mkdirSync(path.join(root, 'out/artifact'), { recursive: true });
 fs.writeFileSync(path.join(root, 'out/artifact/badminton-handbook.html'), artifact);
 
 /* 5. 獨立版 */
+const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; font-src data:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'";
+const OG_DESC = '12 週訓練計畫、每日課表、訓練菜單、計時與計分板。不用註冊，點開就能用。';
 const iconSvg = rd('src/icon.svg');
 const favicon = 'data:image/svg+xml,' + encodeURIComponent(iconSvg.replace(/\s+/g, ' '));
 const reset = ':root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}';
@@ -48,6 +55,10 @@ const site = '<!doctype html>\n<html lang="zh-Hant-TW">\n<head>\n<meta charset="
   '<title>' + TITLE + '</title>\n<meta name="description" content="' + DESC + '">\n' +
   '<meta name="theme-color" content="#f2f5f1" media="(prefers-color-scheme: light)">\n<meta name="theme-color" content="#0d1411" media="(prefers-color-scheme: dark)">\n' +
   '<meta name="robots" content="noindex">\n' +                    // 自己用的工具，不需要被搜尋引擎收錄
+  /* 頁面只能載入和連線到自己的網址（GitHub Pages 不能設定標頭，所以寫在頁面裡）；連出去的連結不帶來源網址 */
+  '<meta http-equiv="Content-Security-Policy" content="' + CSP + '">\n<meta name="referrer" content="no-referrer">\n' +
+  '<meta property="og:type" content="website">\n<meta property="og:title" content="' + TITLE + '">\n<meta property="og:description" content="' + OG_DESC + '">\n' +
+  (BASE ? '<meta property="og:url" content="' + BASE + '">\n<meta property="og:image" content="' + BASE + 'og.png">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta name="twitter:card" content="summary_large_image">\n' : '') +
   '<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="' + SHORT + '">\n' +
   '<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" href="' + favicon + '">\n<link rel="apple-touch-icon" href="apple-touch-icon.png">\n' +
   '<style>' + reset + '</style>\n<style>\n' + css + '\n</style>\n</head>\n<body>\n' + body + '\n<script>\n' + js(true) + '\n</script>\n</body>\n</html>\n';
@@ -70,8 +81,7 @@ fs.writeFileSync(path.join(siteDir, 'manifest.webmanifest'), JSON.stringify(mani
 /* 離線快取：先用快取開啟（球館訊號差也不會卡住），同時在背景抓新版，下次開啟就是新的。
    版本取自內容的雜湊：內容一變，sw.js 就跟著變，瀏覽器會重新安裝並換掉舊快取 */
 const iconFiles = ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
-const at = process.argv.indexOf('--site');
-const dest = at > -1 && process.argv[at + 1] ? path.resolve(process.argv[at + 1]) : null;      // 另外要更新的上線資料夾
+const dest = arg('--site') ? path.resolve(arg('--site')) : null;      // 另外要更新的上線資料夾
 const h = crypto.createHash('sha256').update(site).update(JSON.stringify(manifest));
 iconFiles.forEach(f => { const fp = [siteDir, dest].filter(Boolean).map(d => path.join(d, f)).find(x => fs.existsSync(x)); if (fp) h.update(fs.readFileSync(fp)); });
 const ver = h.digest('hex').slice(0, 12);
@@ -131,7 +141,7 @@ fs.writeFileSync(path.join(siteDir, 'sw.js'), sw);
 /* 安全標頭：Cloudflare（Workers、Pages）會讀 _headers 這個檔案，其他主機會忽略它。
    頁面只能載入和連線到自己的網址，不能被別的網站嵌入，連出去的連結也不帶來源網址 */
 const headers = `/*
-  Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; font-src data:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: ${CSP}; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   X-Frame-Options: DENY

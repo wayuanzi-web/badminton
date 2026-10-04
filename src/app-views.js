@@ -107,7 +107,11 @@ function viewToday() {
   /* 第一次使用：程度和訓練日會改變整份課表，所以提示放在主畫面正下方、課表之前 */
   let hint = '';
   if (!S.setup && !UI.hintOff) {
-    if (onWeb() && isIOS() && !inApp() && !UI.instOff) {
+    if (onWeb() && !inApp() && !UI.instOff && inWebView()) {
+      /* 從 LINE 等 App 點連結進來：這裡裝不了，資料也和手機瀏覽器的分開，先請使用者換到瀏覽器 */
+      hint = '<div class="note-box"><div><b>先換到手機的瀏覽器</b><span>' + WEBVIEW_STEPS + '</span>' +
+        '<div class="btn-row"><button class="btn sm ghost" type="button" data-act="instOff">先在這裡用</button></div></div></div>';
+    } else if (onWeb() && isIOS() && !inApp() && !UI.instOff) {
       /* iPhone、iPad：主畫面版本和 Safari 各存各的資料，所以請使用者先加到主畫面，再開始設定 */
       hint = '<div class="note-box"><div><b>先加到主畫面</b><span>' + IOS_STEPS + '主畫面版本和 Safari 的資料是分開存的，所以先加好，再從主畫面開啟來設定。</span>' +
         '<div class="btn-row"><button class="btn sm ghost" type="button" data-act="instOff">先在瀏覽器裡用</button></div></div></div>';

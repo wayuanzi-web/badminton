@@ -95,7 +95,7 @@ function makeHost(st) {
     o = o || {};
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'zh-TW', userAgent: o.ua, hasTouch: !!o.ua, isMobile: !!o.ua });
     const p = await ctx.newPage(); p._errs = [];
-    p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|net::ERR_/.test(m.text())) { errors.push('[console] ' + m.text()); p._errs.push(m.text()); } });
+    p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|net::ERR_/.test(m.text()) && !(o.quiet && o.quiet.test(m.text()))) { errors.push('[console] ' + m.text()); p._errs.push(m.text()); } });
     p.on('pageerror', e => { errors.push('[pageerror] ' + e.message); p._errs.push(e.message); });
     if (o.init) await p.addInitScript(o.init);
     return p;
@@ -162,6 +162,11 @@ function makeHost(st) {
       viewport: (document.querySelector('meta[name=viewport]') || {}).content
     }));
     eq(head.robots, 'noindex'); eq(head.title, '羽球手冊'); eq(head.capable, 'yes');
+    const metas = await p.evaluate(() => { const g = sel => (document.querySelector(sel) || {}).content; return { csp: g('meta[http-equiv="Content-Security-Policy"]'), ref: g('meta[name=referrer]'), ogt: g('meta[property="og:title"]'), ogd: g('meta[property="og:description"]'), ogi: g('meta[property="og:image"]'), ogu: g('meta[property="og:url"]') }; });
+    ok(/default-src 'none'/.test(metas.csp) && /connect-src 'self'/.test(metas.csp) && /img-src 'self' data:/.test(metas.csp), '頁面帶有內容安全政策');
+    eq(metas.ref, 'no-referrer'); eq(metas.ogt, '羽球訓練手冊'); ok(metas.ogd.length > 10);
+    ok(/^https:\/\/.+\/og\.png$/.test(metas.ogi) && metas.ogi.startsWith(metas.ogu), '連結預覽圖是完整網址：' + metas.ogi);
+    ok(fs.existsSync(path.join(__dirname, '..', 'og.png')) && fs.statSync(path.join(__dirname, '..', 'og.png')).size > 10000, 'og.png 存在');
     ok(/apple-touch-icon\.png$/.test(head.touch) && /viewport-fit=cover/.test(head.viewport));
 
     /* 先留一點資料，後面確認更新和離線都不會動到它 */
@@ -337,6 +342,145 @@ function makeHost(st) {
     await p.goto(origin + '/'); await ready(p);
     await p.click('#setBtn'); await p.waitForSelector('dialog[open] #s-start');
     ok(!(await p.locator('dialog .sheet-b').innerText()).includes('裝到主畫面'), '以 App 視窗開啟：設定裡沒有安裝區塊');
+    eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
+
+    /* ===== 8a. 分享連結、LINE 等內建瀏覽器、內容安全政策 ===== */
+    const openSettings = async q => { await q.click('#setBtn'); await q.waitForSelector('dialog[open] #s-start'); };
+    const toastOf = q => q.evaluate(() => (document.getElementById('toast') || {}).textContent || '');
+    // 沒有系統分享選單、剪貼簿可用：複製連結
+    p = await newPage();
+    await p.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
+    await p.goto(origin + '/?openExternalBrowser=1#menu'); await ready(p);
+    ok((await p.locator('#view').innerText()).includes('菜單'), '帶 openExternalBrowser 參數的網址可以正常開');
+    await openSettings(p);
+    eq(await p.inputValue('#s-share'), origin + '/?openExternalBrowser=1', '分享連結帶 LINE 用的參數');
+    await p.evaluate(() => { delete Navigator.prototype.share; });
+    await p.click('dialog [data-act="share"]');
+    await p.waitForFunction(() => /已複製連結/.test((document.getElementById('toast') || {}).textContent || ''));
+    eq(await p.evaluate(() => navigator.clipboard.readText()), origin + '/?openExternalBrowser=1', '剪貼簿裡是分享連結');
+    // 剪貼簿寫不進去：選取連結讓使用者自己複製
+    await p.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error('no')); });
+    await p.click('dialog [data-act="share"]');
+    await p.waitForFunction(() => /已選取連結/.test((document.getElementById('toast') || {}).textContent || ''));
+    eq(await p.evaluate(() => { const b = document.getElementById('s-share'); return document.activeElement === b && b.selectionEnd - b.selectionStart === b.value.length; }), true, '複製不了時選取連結');
+    // 有系統分享選單（手機）：交給它；使用者取消時不出聲
+    await p.evaluate(() => { window.__shared = []; window.__shareFail = null; navigator.share = d => { window.__shared.push(d); return window.__shareFail ? Promise.reject(window.__shareFail) : Promise.resolve(); }; });
+    await p.click('dialog [data-act="share"]');
+    const shared = await p.evaluate(() => window.__shared);
+    eq(shared.length, 1); eq(shared[0].url, origin + '/?openExternalBrowser=1'); eq(shared[0].title, '羽球訓練手冊');
+    await p.evaluate(() => { const t = document.getElementById('toast'); if (t) t.textContent = ''; window.__shareFail = Object.assign(new Error('x'), { name: 'AbortError' }); });
+    await p.click('dialog [data-act="share"]'); await p.waitForTimeout(200);
+    eq(await toastOf(p), '', '使用者取消分享時不顯示訊息');
+    ok((await p.evaluate(() => { const b = document.querySelector('dialog[open] .sheet-b'); return b.scrollWidth - b.clientWidth; })) <= 0, '設定面板不溢出');
+    eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
+
+    // 從 LINE 點連結進來（iPhone 和 Android）：先請使用者換到手機的瀏覽器
+    for (const ua of [IPHONE.replace('Safari/604.1', 'Safari/604.1 Line/14.9.0'), 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36 Line/14.9.1/IAB']) {
+      p = await newPage({ ua });
+      await p.goto(origin + '/'); await ready(p);
+      box = await p.locator('#view .note-box').first().innerText();
+      ok(box.includes('先換到手機的瀏覽器') && box.includes('以預設瀏覽器開啟'), 'LINE 內建瀏覽器：提示換到瀏覽器');
+      await openSettings(p);
+      ok((await p.locator('dialog .sheet-b').innerText()).includes('內建瀏覽器，不能加到主畫面'), 'LINE 內建瀏覽器：設定裡的安裝說明');
+      await p.keyboard.press('Escape'); await p.waitForSelector('dialog.sheet', { state: 'detached' });
+      eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
+    }
+    p = await newPage({ ua: IPHONE.replace('Safari/604.1', 'Safari/604.1 Line/14.9.0') });
+    await p.goto(origin + '/'); await ready(p);
+    await p.click('[data-act="instOff"]');
+    ok((await p.locator('#view .note-box').first().innerText()).includes('預設值'), '選擇先在這裡用之後，顯示預設值提示');
+    await p.context().close();
+
+    // 內容安全政策真的有效：頁面連不到別的網域，也載不了外部圖片
+    p = await newPage({ quiet: /Content Security Policy|Refused to/i });
+    await p.goto(origin + '/'); await ready(p);
+    const csp = await p.evaluate(() => new Promise(res => {
+      const seen = [];
+      document.addEventListener('securitypolicyviolation', e => seen.push(e.violatedDirective.split(' ')[0] + ' ' + e.blockedURI));
+      fetch('https://example.com/collect', { method: 'POST', body: 'x' }).catch(() => {});
+      const im = new Image(); im.src = 'https://example.com/pixel.png';
+      const sc = document.createElement('script'); sc.src = 'https://example.com/x.js'; document.head.appendChild(sc);
+      setTimeout(() => res(seen), 600);
+    }));
+    ok(csp.some(x => /^connect-src https:\/\/example\.com/.test(x)), '擋下對外連線：' + csp.join(' | '));
+    ok(csp.some(x => /^img-src https:\/\/example\.com/.test(x)), '擋下外部圖片');
+    ok(csp.some(x => /^script-src(-elem)? https:\/\/example\.com/.test(x)), '擋下外部程式');
+    await p.context().close();
+
+    /* ===== 8b. 第二份備份：同網域的別的網站把 localStorage 清掉時，紀錄會自動回來 ===== */
+    const idbState = q => q.evaluate(() => new Promise(res => {
+      const rq = indexedDB.open('badminton-handbook', 1);
+      rq.onupgradeneeded = () => { rq.result.createObjectStore('kv'); };
+      rq.onerror = () => res(null);
+      rq.onsuccess = () => { const db = rq.result, g = db.transaction('kv').objectStore('kv').get('state'); g.onsuccess = () => { db.close(); res(g.result || null); }; g.onerror = () => { db.close(); res(null); }; };
+    }));
+    const idbPut = (q, text) => q.evaluate(t => new Promise(res => {
+      const rq = indexedDB.open('badminton-handbook', 1);
+      rq.onupgradeneeded = () => { rq.result.createObjectStore('kv'); };
+      rq.onsuccess = () => { const db = rq.result, tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(t, 'state'); tx.oncomplete = () => { db.close(); res(true); }; };
+    }), text);
+    const lsState = q => q.evaluate(k => JSON.parse(localStorage.getItem(k) || 'null'), KEY);
+    const toastNow = q => q.evaluate(() => { const t = document.getElementById('toast'); return t && !t.hidden ? t.textContent : ''; });
+    p = await newPage();
+    await p.goto(origin + '/'); await ready(p);
+    await p.waitForFunction(k => !!localStorage.getItem(k), KEY);
+    eq((await lsState(p)).setup, false, '第一次開啟：查過沒有第二份，把預設值存下來');
+    await p.click('[data-act="hintOff"]');
+    await p.click('#nav [data-tab="log"]'); await p.click('[data-act="addLog"]'); await p.waitForSelector('dialog[open] #f-title');
+    await p.fill('#f-title', '第二份備份測試'); await p.fill('#f-min', '45'); await p.click('dialog [data-act="logSave"]');
+    await waitFor(async () => { const t = await idbState(p); return t && JSON.parse(t).logs.length === 1; }, '存檔後第二份備份跟著寫入');
+    await p.evaluate(() => localStorage.clear());                          // 同網域的別的網站清掉了整個 localStorage
+    await p.reload(); await ready(p);
+    await p.waitForFunction(() => /已自動還原/.test((document.getElementById('toast') || {}).textContent || ''));
+    let back = await lsState(p);
+    eq(back.logs.length, 1); eq(back.logs[0].title, '第二份備份測試'); eq(back.setup, true, 'localStorage 被清掉後自動還原');
+    ok(!(await p.locator('#view').innerText()).includes('預設值'), '還原後畫面是還原後的狀態');
+    await p.click('#nav [data-tab="log"]');
+    ok((await p.locator('#view').innerText()).includes('第二份備份測試'), '紀錄回來了');
+    // 開著的時候被清掉：下一次存檔會把 localStorage 補回去
+    await p.evaluate(() => localStorage.clear());
+    await p.click('#nav [data-tab="today"]'); await p.click('[data-act="tests"]'); await p.fill('#t-rope', '120'); await p.keyboard.press('Escape');
+    eq((await lsState(p)).logs.length, 1, '開著時被清掉，下一次存檔就補回來');
+    // 自己按「清除全部資料」：第二份也跟著清空，不會復活
+    await p.click('#nav [data-tab="log"]');
+    await p.click('[data-act="wipe"]'); await p.waitForTimeout(500); await p.click('[data-act="wipe"]');
+    await waitFor(async () => { const t = await idbState(p); return t && JSON.parse(t).logs.length === 0 && !JSON.parse(t).setup; }, '清除後第二份也清空');
+    await p.evaluate(() => localStorage.clear());
+    await p.reload(); await ready(p);
+    await p.waitForFunction(k => !!localStorage.getItem(k), KEY);
+    eq((await lsState(p)).logs.length, 0, '自己清除的資料不會復活');
+    eq(await toastNow(p), '', '沒有還原訊息');
+    // 第二份的內容壞掉或被塞了惡意內容：不出錯，也不會執行
+    await idbPut(p, '這不是 JSON{{{');
+    await p.evaluate(() => localStorage.clear()); await p.reload(); await ready(p);
+    await p.waitForFunction(k => !!localStorage.getItem(k), KEY);
+    eq((await lsState(p)).logs.length, 0, '第二份壞掉時照第一次使用處理');
+    await idbPut(p, JSON.stringify({ setup: true, set: { level: 9, days: 'x', start: '<img src=x onerror=window.__xss=1>' }, logs: [{ id: 'h', date: '2026-10-03', kind: 'court', title: '<img src=x onerror="window.__xss=1">', min: 60 }] }));
+    await p.evaluate(() => localStorage.clear()); await p.reload(); await ready(p);
+    await p.waitForFunction(() => /已自動還原/.test((document.getElementById('toast') || {}).textContent || ''));
+    await p.click('#nav [data-tab="log"]'); await p.waitForTimeout(200);
+    eq(await p.evaluate(() => window.__xss), undefined, '第二份裡的內容一樣會清洗和跳脫');
+    back = await lsState(p);
+    ok(back.set.level >= 0 && back.set.level <= 2 && back.set.days.length === 7 && /^\d{4}-\d{2}-\d{2}$/.test(back.set.start), '還原的資料經過清洗');
+    eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
+
+    // 這個瀏覽器沒有 IndexedDB：照舊，第一次開啟立刻存
+    p = await newPage({ init: () => { Object.defineProperty(window, 'indexedDB', { value: undefined, configurable: true }); } });
+    await p.goto(origin + '/'); await ready(p);
+    eq((await lsState(p)).setup, false, '沒有 IndexedDB 也能用');
+    eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
+    // IndexedDB 開啟後一直沒有回應：等一下之後照第一次使用處理
+    p = await newPage({ init: () => { Object.defineProperty(window, 'indexedDB', { value: { open() { return {}; } }, configurable: true }); } });
+    await p.goto(origin + '/'); await ready(p);
+    eq(await lsState(p), null, 'IndexedDB 沒回應時先等一下');
+    await p.waitForFunction(k => !!localStorage.getItem(k), KEY, { timeout: 4000 });
+    await p.click('[data-act="hintOff"]');
+    eq((await lsState(p)).setup, true, 'IndexedDB 沒回應也不影響存檔');
+    eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
+    // IndexedDB 開啟時直接丟出錯誤（某些私密瀏覽模式）
+    p = await newPage({ init: () => { Object.defineProperty(window, 'indexedDB', { value: { open() { throw new Error('denied'); } }, configurable: true }); } });
+    await p.goto(origin + '/'); await ready(p);
+    await p.waitForFunction(k => !!localStorage.getItem(k), KEY, { timeout: 4000 });
     eq(p._errs.length, 0, p._errs.join(' | ')); await p.context().close();
 
     /* 直接打開檔案（沒有放上網址）：不顯示安裝相關的提示 */
