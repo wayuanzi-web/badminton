@@ -1,0 +1,9 @@
+{
+  "name": "badminton",
+  "private": true,
+  "description": "羽球訓練手冊：可安裝的網頁 App",
+  "scripts": {
+    "build": "node build.mjs --site .",
+    "test": "node test/logic.test.mjs && node test/contrast.mjs"
+  }
+}

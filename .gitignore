@@ -1,0 +1,6 @@
+out/
+node_modules/
+package-lock.json
+# 另一種交付方式（zip 與 Cloudflare 設定）用的本機檔案
+deploy/
+pack.py
