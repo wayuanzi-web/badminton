@@ -105,7 +105,9 @@ function openFinish() {
     body: '<div class="form"><p class="muted">' + esc(sess.n) + '</p>' +
       '<div class="field"><label for="f-min">實際練了幾分鐘</label><input class="inp" id="f-min" type="number" inputmode="numeric" min="0" max="600" value="' + min + '"></div>' +
       rpeHTML(null) +
-      '<div class="field"><label for="f-note">備註</label><textarea class="inp" id="f-note" placeholder="例：高遠球到位變多了；反手還是容易出界"></textarea></div></div>',
+      '<div class="field"><label for="f-note">備註</label><textarea class="inp" id="f-note" placeholder="例：高遠球到位變多了；反手還是容易出界"></textarea></div>' +
+      (sess.blocks.some(b => b.t === '暖身') && !warmDone(S, sh.ds, sh.sid) ? '<p class="small muted">暖身還沒有全部打勾。暖身做完並打勾，這堂課多 ' + XP.warm + ' 分。</p>' : '') +
+      '<p class="small muted">記下自覺強度多 ' + XP.rpe + ' 分。照實記就好，分數高低不影響經驗值。</p></div>',
     foot: '<button class="btn" type="button" data-act="finishSave">儲存紀錄</button>'
   });
   d.setAttribute('data-ds', sh.ds); d.setAttribute('data-sid', sh.sid);        // 記下是哪一天的哪一堂，跨過午夜也不會寫錯
@@ -254,7 +256,7 @@ function restoreApply(btn) {
   try { obj = JSON.parse(raw); } catch (e) { obj = null; }
   if (!isObj(obj) || !isObj(obj.set) || !Array.isArray(obj.logs)) { toast('這不是有效的備份文字，請確認有完整貼上'); return; }
   if (!armed(btn, '再按一次，確定取代')) return;
-  S = normalize(obj); save(); UI.planWeek = null; SBG = null;
+  S = normalize(obj); GS = null; save(); UI.planWeek = null; SBG = null;
   closeSheet(d); render(); toast('已還原 ' + S.logs.length + ' 筆紀錄');
 }
 
@@ -347,13 +349,13 @@ const ACT = {
   menuSeg: el => { UI.menuSeg = el.getAttribute('data-v'); render(true); },
   menuWhere: el => { UI.menuWhere = el.getAttribute('data-v'); render(true); },
   exCat: el => { UI.exCat = el.getAttribute('data-v'); render(true); },
-  learn: el => { UI.learn = el.getAttribute('data-id') || null; render(); },
+  learn: el => { UI.learn = el.getAttribute('data-id') || null; if (UI.learn === 'safety') markSafetyRead(); render(); },
   chartTable: () => { UI.chartTable = !UI.chartTable; render(true); },
   backup: () => openBackup(),
   restore: () => openRestore(),
   wipe: el => {
     if (!armed(el, '再按一次，清除全部')) return;
-    S = defaultState(); save(); UI.planWeek = null; SBG = null; render(); toast('資料已清除');
+    S = defaultState(); GS = null; save(); UI.planWeek = null; SBG = null; render(); toast('資料已清除');
   },
   bkCopy: el => {
     const ta = $('#bk-text', el.closest('dialog'));
@@ -429,6 +431,7 @@ const ACT = {
   sbReset: () => { SBG = null; sbRenderSetup(); focusIn(SBD, '[data-act="sbStart"]'); },
   sbAskReset: el => { if (SBG && (SBG.score[0] || SBG.score[1] || SBG.results.length) && !SBG.over && !armed(el, '再按一次，放棄這場')) return; SBG = null; sbRenderSetup(); }
 };
+Object.assign(ACT, GAME_ACT);
 
 document.addEventListener('click', e => {
   const tabEl = e.target.closest('[data-tab]');
@@ -497,6 +500,7 @@ document.addEventListener('input', e => {
 window.addEventListener('storage', e => {
   if (e.key !== KEY || !e.newValue) return;
   try { S = normalize(JSON.parse(e.newValue)); } catch (er) { return; }
+  gameTick(true);
   if (!document.querySelector('dialog[open]')) render(true);
 });
 
@@ -523,8 +527,9 @@ function init() {
   let h = '';
   try { h = (window.location.hash || '').replace('#', ''); } catch (e) { h = ''; }
   if (TABS.some(t => t[0] === h)) UI.tab = h;
+  gameTick(true);
   render();
-  mirrorStart(() => { UI.planWeek = null; render(); toast('這台裝置上的紀錄曾被清除，已自動還原'); });
+  mirrorStart(() => { gameTick(true); UI.planWeek = null; render(); toast('這台裝置上的紀錄曾被清除，已自動還原'); });
   if (STANDALONE) {
     try {
       const secure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';

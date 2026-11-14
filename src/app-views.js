@@ -43,7 +43,10 @@ function todayInfo() {
   let sid = null, src = null;
   if (own(S.over, ds) && getSession(S.over[ds])) { sid = S.over[ds]; src = 'over'; }
   else if (w >= 0 && sched[d].sid) { sid = sched[d].sid; src = 'plan'; }
-  return { t, ds, w, d, pos, sched, sid, src, sess: sid ? getSession(sid) : null, f: sid ? ctxFactor(sid, w) : 1 };
+  const chk = own(S.chk, ds) ? S.chk[ds] : null;
+  let f = sid ? ctxFactor(sid, w) : 1;
+  if (chk && chk.res === 'easy') f = Math.min(f, 0.6);           // 練前檢查建議輕量版：份量降到減量週的六成
+  return { t, ds, w, d, pos, sched, sid, src, sess: sid ? getSession(sid) : null, f, chk };
 }
 /* 畫面上正在顯示的那一堂課。打勾和完成都記在這裡，跨過午夜也不會記錯天 */
 let SHOWN = null;
@@ -133,7 +136,7 @@ function viewToday() {
       const planned = ti.w >= 0 && ti.sched[ti.d].sid;
       html += '<p class="small muted">今天改做這份課表。<button class="link" type="button" data-act="unover">' + (planned ? '換回計畫的課表' : '取消') + '</button></p>';
     }
-    html += hint;
+    html += hint + gameCardHTML() + alertsHTML() + readyHTML(ti);
     html += rowsHTML(ti.sess, lv, ti.f, { live: true, ck: rec.ck, h: 2 });
     if (lg) {
       html += '<div class="note-box"><div><b>今天的訓練已完成</b><span>' + esc(lg.min) + ' 分鐘' + (lg.rpe ? '，自覺強度 ' + esc(lg.rpe) : '') + '</span>' +
@@ -157,7 +160,7 @@ function viewToday() {
         '<div class="hero-act"><button class="btn sm" type="button" data-act="do" data-sid="m_recover">做恢復伸展</button>' +
         (nx ? '<button class="btn sm ghost" type="button" data-act="do" data-sid="' + nx.sid + '">今天改練下一堂</button>' : '') + '</div>' + weekStrip(ti) + '</section>';
     }
-    html += hint;
+    html += hint + gameCardHTML() + alertsHTML();
     if (nx) {
       const ns = getSession(nx.sid), nf = ctxFactor(nx.sid, nx.w);
       html += '<div class="head"><div><h2 class="h-sec">' + esc(ns.n) + '</h2>' +
@@ -312,6 +315,7 @@ function viewLog() {
   const totalMin = S.logs.reduce((n, l) => n + (+l.min || 0), 0), streak = streakWeeks(S.logs, ts);
   const hrs = totalMin / 60;
   let html = '<div class="head"><div><h1 class="h-page">紀錄</h1></div><button class="btn sm" type="button" data-act="addLog">' + icon('plus') + '新增紀錄</button></div>';
+  html += gameCardHTML() + alertsHTML();
   html += '<div class="tiles">' +
     '<div class="tile"><span>本週訓練</span><b>' + cur.count + '<small>次</small></b></div>' +
     '<div class="tile"><span>本週時間</span><b>' + (cur.court + cur.off) + '<small>分鐘</small></b></div>' +

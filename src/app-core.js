@@ -44,7 +44,10 @@ function defaultState() {
     logs: [],       // { id, date, kind, title, min, rpe, note, result, score, sid }
     tests: {},      // tests[檢測點][項目] = 數值
     arch: [],       // 前幾輪計畫的檢測數字
-    sb: { names: cleanNames(null), mode: 'D', first: 0 }
+    sb: { names: cleanNames(null), mode: 'D', first: 0 },
+    chk: {},        // chk[日期] = 練前自我檢查 { ill, pain, sleep, tired, res }
+    screen: null,   // 健康自評 { at: 日期, yes: 答「是」的題數 }
+    read: { safety: false }
   };
 }
 /* 不管來源是儲存空間還是貼上的備份，一律逐欄清洗，型別不對就用預設值 */
@@ -64,7 +67,8 @@ function normalize(s) {
       kg: (isFinite(kg) && kg >= 30 && kg <= 200) ? kg : null
     },
     day: cleanDays(s.day), over: cleanOver(s.over), logs: cleanLogs(s.logs), tests: cleanTests(s.tests), arch: cleanArch(s.arch),
-    sb: { names: cleanNames(sb.names), mode: sb.mode === 'S' ? 'S' : 'D', first: Number(sb.first) === 1 ? 1 : 0 }
+    sb: { names: cleanNames(sb.names), mode: sb.mode === 'S' ? 'S' : 'D', first: Number(sb.first) === 1 ? 1 : 0 },
+    chk: cleanChk(s.chk), screen: cleanScreen(s.screen), read: cleanRead(s.read)
   };
 }
 const firstRead = store.read();
@@ -104,8 +108,8 @@ const mirror = {
   queue() { if (!this.on || !this.ready) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.put(), 300); },
   flush() { if (this.timer) { clearTimeout(this.timer); this.timer = null; this.put(); } }
 };
-const hasData = s => !!(s.setup || s.logs.length || s.arch.length || Object.keys(s.day).length || Object.keys(s.tests).length || Object.keys(s.over).length);
-function save() { store.write(S); mirror.queue(); }
+const hasData = s => !!(s.setup || s.logs.length || s.arch.length || Object.keys(s.day).length || Object.keys(s.tests).length || Object.keys(s.over).length || Object.keys(s.chk).length || s.screen);
+function save() { store.write(S); mirror.queue(); gameTick(); }
 /* 第一次開啟就把預設值存下來，計畫開始日才不會隨著日子往後漂。有第二份備份可查時，先查過再存（mirrorStart） */
 if (startedEmpty && !mirror.on) save();
 /* 啟動時呼叫一次。onRestore：從第二份備份還原之後，讓畫面重畫 */

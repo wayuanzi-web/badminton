@@ -560,6 +560,56 @@ dialog.sheet.full .sheet-h { padding-top: calc(12px + env(safe-area-inset-top, 0
   .c-court, .c-off, .lg-court, .lg-off { forced-color-adjust: none; }
 }
 
+/* ---------- 闖關 ----------
+   段位用記分板的黃底窄體數字，和計分板同一個語彙；經驗值條用地墊綠 */
+.gcard { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 12px 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r2); text-align: left; color: var(--ink); }
+.gcard:hover { border-color: var(--line-2); }
+.g-lv { flex: none; display: grid; place-items: center; align-content: center; width: 52px; height: 52px; border-radius: 8px; background: var(--mark); color: var(--mark-ink); line-height: 1; }
+.g-lv b { font-family: var(--num); font-size: 30px; font-weight: 700; }
+.g-lv small { font-size: 11px; font-weight: 700; color: var(--on-mark-dim); margin-top: 2px; }
+.g-lv.big { width: 64px; height: 64px; }
+.g-lv.big b { font-size: 38px; }
+.g-m { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.g-m > b { font-size: 16px; font-weight: 800; }
+.g-m .small { color: var(--ink-2); line-height: 1.45; }
+.g-m .g-q { color: var(--court-text); font-weight: 600; }
+.xpbar { display: block; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.xpbar i { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--court); }
+.g-head { display: flex; align-items: center; gap: 14px; }
+.h-sub { font-size: 15px; font-weight: 800; }
+.note-box.ready { background: var(--off-soft); }
+.rpe.pain { grid-template-columns: repeat(11, 1fr); }
+@media (max-width: 380px) { .rpe.pain button { font-size: 16px; min-height: 38px; } }
+.ready-res { display: grid; gap: 6px; padding: 14px; border-radius: var(--r2); background: var(--court-soft); }
+.ready-res.warn { background: var(--warn-soft); }
+.ready-res b { font-size: 18px; font-weight: 800; }
+.ready-res p { color: var(--ink); line-height: 1.6; }
+.quests { display: grid; gap: 8px; }
+.quests li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r2); background: var(--surface); }
+.q-ck { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ctl); color: var(--on-panel); }
+.q-ck .ic { width: 16px; height: 16px; stroke-width: 2.6; }
+.quests li.is-done .q-ck { background: var(--court); border-color: var(--court); }
+.q-m { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.q-m b { font-size: 14px; }
+.q-m span { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.quests li.is-done .q-m b { color: var(--ink-2); }
+.badges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.badges li { display: grid; gap: 3px; align-content: start; padding: 10px 12px; border: 1px dashed var(--line-2); border-radius: var(--r2); color: var(--ink-3); }
+.badges li b { font-size: 14px; color: var(--ink-2); }
+.badges li > span:not(.bd-ic) { font-size: 12px; line-height: 1.45; }
+.bd-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); margin-bottom: 4px; }
+.bd-ic .ic { width: 20px; height: 20px; }
+.badges li.is-got { border-style: solid; border-color: var(--line); background: var(--surface); color: var(--ink-2); }
+.badges li.is-got b { color: var(--ink); }
+.badges li.is-got .bd-ic { background: var(--mark); color: var(--mark-ink); }
+.ranks { display: grid; gap: 2px; }
+.ranks li { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; padding: 6px 10px; border-radius: 8px; font-size: 14px; color: var(--ink-2); }
+.ranks li > span { font-family: var(--num); font-size: 16px; font-weight: 600; }
+.ranks li.is-past { color: var(--ink-3); }
+.ranks li.is-cur { background: var(--mark); color: var(--mark-ink); }
+.ranks li.is-cur b { font-weight: 800; }
+.src-list { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+
 </style>
 </head>
 <body>
@@ -2141,6 +2191,60 @@ const LEARN = [
 <p class="note">40 歲以上很久沒運動，或有心血管、慢性疾病的人，開始高強度訓練前先請醫師評估。</p>`
   },
   {
+    id: 'safety', n: '安全訓練的依據', sub: '這個 App 怎麼排課、怎麼闖關、怎麼避免受傷',
+    html: `
+<p>這個 App 的闖關只獎勵一件事：照計畫、有暖身、有聽身體地練。下面是每一條規則背後的根據。</p>
+
+<h3>闖關怎麼給分</h3>
+<ul>
+<li>完成課表、把暖身做完、記下自覺強度、做練前檢查，都有經驗值。</li>
+<li><b>一天最多算一堂。</b>同一天多練不會多拿分，練得更累也不會。</li>
+<li>練前檢查建議減量或休息，照做也有分。休息是訓練的一部分。</li>
+<li>徽章給的是好習慣：暖身、誠實記錄強度、減量週不多練、連續幾週不間斷。</li>
+</ul>
+
+<h3>依據</h3>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th scope="col">App 裡的做法</th><th scope="col">根據</th></tr></thead>
+<tbody>
+<tr><th scope="row">每堂課先暖身，暖身做完才有加分</th><td>結構化的暖身計畫（例如足球的 FIFA 11+）在隨機對照試驗中明顯降低運動傷害。</td></tr>
+<tr><th scope="row">每週 1–2 次場外肌力課</th><td>統合分析發現肌力訓練能把運動傷害減少到約三分之一；單靠伸展沒有預防效果。</td></tr>
+<tr><th scope="row">三週加量、一週減量</th><td>漸進負荷加上定期恢復，是週期化訓練的基本做法；身體在恢復期才把訓練的效果留下來。</td></tr>
+<tr><th scope="row">練完記自覺強度（1–10）</th><td>「分鐘數 × 自覺強度」（session-RPE）是簡單又有研究支持的訓練負荷估算法。</td></tr>
+<tr><th scope="row">這週加太快會提醒</th><td>訓練量突然暴增和受傷有關。這個 App 拿這週跟前四週平均比，超過 1.3 倍提醒、1.5 倍建議休息。這個比值在學界有爭議，只當作提醒，不當作預測。</td></tr>
+<tr><th scope="row">練前疼痛評分</th><td>參考阿基里斯腱病變復健研究的疼痛監測做法：練的時候痛在 5 分以內、隔天早上沒有更痛，可以繼續練；超過就減量。這個 App 對沒有醫師追蹤的一般球友取更保守的 3 分。</td></tr>
+<tr><th scope="row">發燒或胸悶就休息</th><td>運動醫學常用的「脖子原則」：只有流鼻水、鼻塞可以輕量活動；發燒、咳嗽、胸悶、全身痠痛就休息。</td></tr>
+<tr><th scope="row">睡不好就練輕量版</th><td>青少年運動員的研究發現，平均睡不到 8 小時，受傷風險約高 1.7 倍。</td></tr>
+<tr><th scope="row">開始前的健康自評</th><td>題目參考國際通用的運動前健康問卷 PAR-Q+；有任何一題答「是」，先請醫師評估。</td></tr>
+<tr><th scope="row">一週練多少</th><td>世界衛生組織建議成人每週 150–300 分鐘中等強度活動，加上至少 2 天肌力訓練。這份計畫一般每週 3 堂，落在這個範圍內。</td></tr>
+</tbody></table></div>
+
+<h3>練前檢查怎麼判斷</h3>
+<div class="tbl-wrap"><table class="tbl">
+<tbody>
+<tr><th scope="row">照課表練</th><td>不痛、睡得好、精神好。</td></tr>
+<tr><th scope="row">輕量版</th><td>有地方痛 1–3 分，或沒睡好、很累。份量降到六成。</td></tr>
+<tr><th scope="row">恢復伸展</th><td>有地方痛 4–6 分。只做不會痛的伸展。</td></tr>
+<tr><th scope="row">休息</th><td>痛到 7 分以上、發燒、喉嚨以下的感冒症狀、胸悶或頭暈。</td></tr>
+</tbody></table></div>
+<p>羽球最常受傷的是下肢（腳踝、膝蓋、阿基里斯腱），其次是肩膀和手肘，詳見「傷害預防與處理」。</p>
+
+<h3>參考資料</h3>
+<ul class="src-list">
+<li>Soligard T, et al. Comprehensive warm-up programme to prevent injuries in young female footballers. BMJ 2008;337:a2469.</li>
+<li>Lauersen JB, Bertelsen DM, Andersen LB. The effectiveness of exercise interventions to prevent sports injuries. Br J Sports Med 2014;48:871–877.</li>
+<li>Foster C, et al. A new approach to monitoring exercise training. J Strength Cond Res 2001;15(1):109–115.</li>
+<li>Gabbett TJ. The training–injury prevention paradox. Br J Sports Med 2016;50:273–280.</li>
+<li>Impellizzeri FM, et al. Acute:chronic workload ratio: conceptual issues and fundamental pitfalls. Int J Sports Physiol Perform 2020;15(6):907–913.</li>
+<li>Silbernagel KG, et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. Am J Sports Med 2007;35(6):897–906.</li>
+<li>Milewski MD, et al. Chronic lack of sleep is associated with increased sports injuries in adolescent athletes. J Pediatr Orthop 2014;34(2):129–133.</li>
+<li>Warburton DER, et al. The PAR-Q+ and ePARmed-X+. Health Fit J Can 2011;4(2):3–23.</li>
+<li>World Health Organization. Guidelines on physical activity and sedentary behaviour. 2020.</li>
+<li>Phomsoupha M, Laffaye G. Injuries in badminton: a review. Sci Sports 2020;35(4):189–199.</li>
+</ul>
+<p class="src">以上是一般運動保健資訊，不能取代醫師或物理治療師的診斷。</p>`
+  },
+  {
     id: 'matchday', n: '比賽日', sub: '賽前、賽中、賽後該做的事',
     html: `
 <h3>前一天</h3>
@@ -2701,6 +2805,293 @@ function validateData() {
 }
 
 /* ============================================================
+   闖關：經驗值、段位、徽章、新手任務、練前自我檢查、訓練負荷提醒
+   原則：只獎勵「照計畫、有暖身、有聽身體」的訓練。
+   多練、練更累不會多拿分；一天最多算一堂；聽從檢查結果休息也有分。
+   經驗值與徽章都從紀錄即時算出來，不另外存，備份還原後也一樣。
+   （純邏輯，不碰 DOM）
+   ============================================================ */
+
+const XP = {
+  sess: 100,       // 完成一堂 App 裡的課表或菜單
+  warm: 20,        // 那堂課的暖身全部打勾
+  rpe: 10,         // 記下自覺強度
+  manual: 50,      // 手動新增的紀錄（球隊、比賽、自己練）
+  check: 10,       // 練前自我檢查（每天一次）
+  smart: 40,       // 檢查建議減量或休息，而且照做
+  test: 80,        // 完成一次檢測（每個檢測點一次）
+  quest: 30,       // 每個新手任務
+  badge: 50        // 每個徽章
+};
+const XP_RULES = [
+  ['完成一堂課表或菜單', XP.sess],
+  ['這堂課的暖身全部打勾', '+' + XP.warm],
+  ['記下自覺強度', '+' + XP.rpe],
+  ['手動記錄球隊練習或比賽', XP.manual],
+  ['練前自我檢查', XP.check],
+  ['檢查建議減量或休息，而且照做', XP.smart],
+  ['完成一次檢測', XP.test],
+  ['完成一個新手任務', XP.quest],
+  ['拿到一個徽章', XP.badge]
+];
+
+const RANKS = [
+  { xp: 0, n: '撿球小將' }, { xp: 150, n: '新手球友' }, { xp: 400, n: '社團常客' }, { xp: 800, n: '穩定球友' },
+  { xp: 1300, n: '社團主力' }, { xp: 2000, n: '系隊選手' }, { xp: 2900, n: '校隊選手' }, { xp: 4000, n: '業餘賽好手' },
+  { xp: 5400, n: '甲組挑戰者' }, { xp: 7200, n: '球館傳說' }
+];
+function rankOf(xp) {
+  let i = 0;
+  while (i + 1 < RANKS.length && xp >= RANKS[i + 1].xp) i++;
+  const cur = RANKS[i], nx = RANKS[i + 1] || null;
+  return { lv: i + 1, n: cur.n, xp, floor: cur.xp, next: nx ? nx.xp : null, nextN: nx ? nx.n : null,
+    pct: nx ? Math.round((xp - cur.xp) / (nx.xp - cur.xp) * 100) : 100 };
+}
+
+/* ---------- 練前自我檢查 ----------
+   ill：發燒或喉嚨以下的症狀（咳嗽、胸悶、全身痠痛），或最近運動時胸痛、頭暈
+   pain：身上最痛的地方幾分（0–10）　sleep、tired：0 好、1 普通、2 差 */
+function readiness(a) {
+  const pain = clamp0(a.pain, 10), sleep = clamp0(a.sleep, 2), tired = clamp0(a.tired, 2);
+  if (a.ill) return 'rest';
+  if (pain >= 7) return 'rest';
+  if (pain >= 4) return 'recover';
+  if (pain >= 1 || sleep >= 2 || tired >= 2 || (sleep + tired) >= 3) return 'easy';
+  return 'go';
+}
+function clamp0(v, max) { v = Math.round(Number(v)); return isFinite(v) ? Math.min(max, Math.max(0, v)) : 0; }
+const READY = {
+  go: { n: '可以照課表練', d: '狀況正常。練的時候還是一樣：痠可以，刺痛、卡住就停。' },
+  easy: { n: '今天練輕量版', d: '有一點痛或沒睡好、比較累。份量自動降到減量週的六成，動作照做、不要衝強度。練的時候痛到 3 分以上，或比開始前更痛，就停下來。' },
+  recover: { n: '今天改做恢復伸展', d: '有地方痛到 4 分以上，硬練容易讓小傷變成大傷。今天只做不會痛的伸展放鬆。同一個地方痛超過一週沒有好轉，請找醫師或物理治療師。' },
+  rest: { n: '今天休息', d: '發燒、喉嚨以下的感冒症狀、胸悶頭暈，或痛到 7 分以上，都不適合訓練。好好休息；胸痛、頭暈、腫脹變形或無法承重，請盡快就醫。症狀消失後，先從輕量版回來。' }
+};
+
+/* ---------- 健康自評（參考 PAR-Q+ 的一般健康問題） ---------- */
+const SCREEN_Q = [
+  '醫師曾經說過你有心臟方面的問題或高血壓嗎？',
+  '休息、日常活動或運動的時候，會覺得胸口痛嗎？',
+  '過去 12 個月內，曾經因為頭暈失去平衡，或失去意識嗎？（運動時喘太急造成的頭暈不算）',
+  '醫師曾經診斷你有其他慢性病嗎？（心臟病、高血壓以外）',
+  '目前有在吃治療慢性病的處方藥嗎？',
+  '目前或過去 12 個月內，有骨骼、關節或肌腱的問題，運動之後會變嚴重嗎？',
+  '醫師曾經說過你只能在醫療監督下運動嗎？'
+];
+
+/* ---------- 讀進來的資料一律先清洗 ---------- */
+function cleanChk(c) {
+  const out = {};
+  if (!isObj(c)) return out;
+  Object.keys(c).slice(-400).forEach(ds => {
+    const v = c[ds];
+    if (!isYmd(ds) || !isObj(v)) return;
+    const o = { ill: v.ill === true || v.ill === 1, pain: clamp0(v.pain, 10), sleep: clamp0(v.sleep, 2), tired: clamp0(v.tired, 2) };
+    o.res = readiness(o);                                // 結果一律重算，不信任存進來的值
+    out[ds] = o;
+  });
+  return out;
+}
+function cleanScreen(s) {
+  if (!isObj(s) || !isYmd(s.at)) return null;
+  const yes = Math.round(Number(s.yes));
+  return { at: s.at, yes: isFinite(yes) ? Math.min(SCREEN_Q.length, Math.max(0, yes)) : 0 };
+}
+function cleanRead(r) { return { safety: !!(isObj(r) && r.safety) }; }
+
+/* ---------- 訓練負荷：每次的分鐘數 × 自覺強度（session-RPE） ----------
+   沒記強度的那一次用 5 分估算。這週和前四週的平均比，加得太快就提醒。 */
+const HARD = l => (l.rpe ? l.rpe >= 8 : l.kind === 'match');
+function loadWeeks(logs, ts, n) {
+  const m0 = mondayOf(parseYmd(ts)), out = [], idx = {};
+  for (let i = n - 1; i >= 0; i--) { const mon = ymd(addDays(m0, -7 * i)); idx[mon] = out.length; out.push({ mon, load: 0, min: 0, count: 0 }); }
+  logs.forEach(l => {
+    if (!isYmd(l.date) || l.date > ts) return;
+    const k = ymd(mondayOf(parseYmd(l.date)));
+    if (!(k in idx)) return;
+    const o = out[idx[k]], min = Math.max(0, +l.min || 0);
+    o.min += min; o.load += min * (l.rpe || 5); o.count++;
+  });
+  return out;
+}
+/* 回傳提醒（沒有就是 null）：
+   spike：這週負荷超過前四週平均的 1.5 倍　climb：超過 1.3 倍
+   back：停了兩週以上剛回來　hard：最近兩次都在 8 分以上 */
+function loadAlert(logs, ts) {
+  const w = loadWeeks(logs, ts, 5), cur = w[4], prev = w.slice(0, 4);
+  const active = prev.filter(x => x.count > 0).length, base = prev.reduce((n, x) => n + x.load, 0) / 4;
+  const recent = logs.filter(l => isYmd(l.date) && l.date <= ts).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)).slice(-2);
+  if (recent.length === 2 && recent.every(HARD)) return { k: 'hard', n: '最近兩次都練得很硬', d: '連續兩次自覺強度 8 分以上。下一次改輕鬆一點（5–6 分），或安排休息，身體才有時間恢復。' };
+  const hadBefore = logs.some(l => isYmd(l.date) && l.date < prev[2].mon);      // 以前練過，不是第一次用
+  if (cur.count > 0 && prev[2].count === 0 && prev[3].count === 0 && hadBefore) {
+    return { k: 'back', n: '停了一陣子，剛回來', d: '停練兩週以上，體能和肌腱的耐受度都會下降。這週先練輕量版（練前檢查選「有點累」也可以），下週再回到原本的份量。' };
+  }
+  if (active >= 2 && base > 0) {
+    const r = cur.load / base;
+    if (r > 1.5) return { k: 'spike', n: '這週加得太快', d: '這週的訓練量已經是前四週平均的 ' + (Math.round(r * 10) / 10) + ' 倍。訓練量突然暴增是常見的受傷原因，這週剩下的日子請休息或只做恢復伸展。', r };
+    if (r > 1.3) return { k: 'climb', n: '這週練得比平常多', d: '這週的訓練量是前四週平均的 ' + (Math.round(r * 10) / 10) + ' 倍。照計畫走沒問題，但不要再額外加練。', r };
+  }
+  return null;
+}
+
+/* ---------- 暖身是否全部打勾 ---------- */
+function warmDone(st, ds, sid) {
+  const sess = getSession(sid);
+  if (!sess) return false;
+  const d = own(st.day, ds) ? st.day[ds] : null, ck = d && own(d, sid) && isObj(d[sid].ck) ? d[sid].ck : {};
+  let has = false, all = true;
+  sess.blocks.forEach((b, bi) => {
+    if (b.t !== '暖身' && b.t !== '賽前暖身') return;
+    itemsOf(b, st.set.level).forEach(i => { has = true; if (!ck[bi + '-' + b.items.indexOf(i)]) all = false; });
+  });
+  return has && all;
+}
+
+/* ---------- 某一期完成了幾成 ---------- */
+function phaseRate(st, p, ts) {
+  const start = parseYmd(st.set.start), last = addDays(start, 7 * (4 * p + 4) - 1);
+  if (ymd(last) > ts) return null;                           // 這一期還沒過完
+  let planned = 0, done = 0;
+  for (let w = 4 * p; w < 4 * p + 4; w++) {
+    const sched = weekSchedule(st.set.days, w);
+    sched.forEach((e, i) => {
+      if (!e.sid) return;
+      planned++;
+      const ds = ymd(addDays(start, 7 * w + i));
+      if (st.logs.some(l => l.date === ds)) done++;
+    });
+  }
+  return planned ? done / planned : null;
+}
+
+/* ---------- 新手任務 ---------- */
+const QUESTS = [
+  { id: 'screen', n: '做健康自評', d: '7 個是非題，確認可以放心開始運動。', act: 'screen' },
+  { id: 'setup', n: '設定程度與每週安排', d: '課表的份量和哪幾天練，都照你的狀況排。', act: 'settings' },
+  { id: 'safety', n: '讀「安全訓練的依據」', d: '3 分鐘看懂這個 App 怎麼排課、怎麼給分。', act: 'readSafety' },
+  { id: 'test', n: '做開始前檢測', d: '8 個項目，之後每四週比一次。', act: 'testW0' },
+  { id: 'first', n: '完成第一堂課，暖身全做', d: '從暖身開始逐項打勾，最後按「完成訓練」。', act: 'goToday' }
+];
+
+/* ---------- 徽章 ---------- */
+const BADGES = [
+  { id: 'b_first', n: '第一拍', d: '完成第一堂課。' },
+  { id: 'b_warm10', n: '暖身達人', d: '有 10 堂課把暖身全部做完。' },
+  { id: 'b_check10', n: '聽身體說話', d: '做了 10 次練前自我檢查。' },
+  { id: 'b_smart', n: '聰明休息', d: '檢查建議減量或休息，你照做了。' },
+  { id: 'b_rpe10', n: '誠實回報', d: '記錄了 10 次自覺強度。' },
+  { id: 'b_deload', n: '減量週照做', d: '在減量週有練，但沒有多練。' },
+  { id: 'b_streak4', n: '一個月不間斷', d: '連續 4 週每週都有練。' },
+  { id: 'b_streak12', n: '一季不間斷', d: '連續 12 週每週都有練。' },
+  { id: 'b_ph1', n: '基礎期結業', d: '基礎期的課完成八成以上。' },
+  { id: 'b_ph2', n: '強化期結業', d: '強化期的課完成八成以上。' },
+  { id: 'b_ph3', n: '實戰期結業', d: '實戰期的課完成八成以上。' },
+  { id: 'b_better', n: '看得見的進步', d: '有一項檢測比開始前進步。' },
+  { id: 'b_better5', n: '全面升級', d: '有 5 項以上的檢測比開始前進步。' }
+];
+
+/* 一天最多算一堂。sess：App 課表；manual：手動紀錄 */
+function countedLogs(logs, ts) {
+  const seen = {}, out = [];
+  logs.filter(l => isYmd(l.date) && l.date <= ts)
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (a.sid ? 0 : 1) - (b.sid ? 0 : 1)))   // 同一天有課表紀錄就優先算那一筆
+    .forEach(l => { if (!seen[l.date]) { seen[l.date] = 1; out.push(l); } });
+  return out;
+}
+/* 檢查結果建議減量或休息，那一天有沒有照做。
+   當天要等照建議練完（有紀錄）才算；建議休息的話，要等那一天過完才算 */
+function obeyed(st, ds, res, ts) {
+  const day = st.logs.filter(l => l.date === ds), past = ds < ts;
+  if (res === 'rest') return past && day.every(l => l.sid === 'm_recover');
+  const ok = res === 'recover' ? (l => l.sid === 'm_recover' || (l.rpe && l.rpe <= 3)) : (l => !HARD(l));
+  if (day.length) return day.every(ok);
+  return past;
+}
+function improved(st) {
+  const w0 = st.tests.w0;
+  if (!w0) return 0;
+  let n = 0;
+  TESTS.forEach(t => {
+    if (w0[t.id] == null) return;
+    const later = ['w12', 'w8', 'w4'].map(k => st.tests[k] && st.tests[k][t.id]).find(v => v != null);
+    if (later == null) return;
+    if (t.better === 'low' ? later < w0[t.id] : later > w0[t.id]) n++;
+  });
+  return n;
+}
+function deloadKept(st, ts) {
+  const start = parseYmd(st.set.start);
+  for (let w = 3; ; w += 4) {
+    const mon = addDays(start, 7 * w), sun = addDays(mon, 6);
+    if (ymd(sun) > ts) return false;
+    const planned = weekSchedule(st.set.days, w).filter(e => e.sid).length;
+    const n = st.logs.filter(l => l.date >= ymd(mon) && l.date <= ymd(sun)).length;
+    if (n >= 1 && n <= planned) return true;
+    if (w > 400) return false;
+  }
+}
+
+/* ---------- 全部算一次 ---------- */
+function gameState(st, ts) {
+  const counted = countedLogs(st.logs, ts);
+  let xp = 0, warmN = 0, rpeN = 0, smartN = 0;
+  counted.forEach(l => {
+    if (l.sid) {
+      xp += XP.sess;
+      if (warmDone(st, l.date, l.sid)) { xp += XP.warm; warmN++; }
+    } else xp += XP.manual;
+    if (l.rpe) { xp += XP.rpe; rpeN++; }
+  });
+  const chkDays = Object.keys(st.chk || {}).filter(ds => ds <= ts);
+  chkDays.forEach(ds => {
+    xp += XP.check;
+    const r = st.chk[ds].res;
+    if (r !== 'go' && obeyed(st, ds, r, ts)) { xp += XP.smart; smartN++; }
+  });
+  const testN = TEST_POINTS.filter(p => st.tests[p.k] && Object.keys(st.tests[p.k]).length).length;
+  xp += testN * XP.test;
+
+  const firstWarm = counted.some(l => l.sid && warmDone(st, l.date, l.sid));
+  const qDone = {
+    screen: !!st.screen, setup: !!st.setup, safety: !!(st.read && st.read.safety),
+    test: !!(st.tests.w0 && Object.keys(st.tests.w0).length), first: firstWarm
+  };
+  const quests = QUESTS.map(q => Object.assign({ done: qDone[q.id] }, q));
+  xp += quests.filter(q => q.done).length * XP.quest;
+
+  const streak = streakWeeks(st.logs, ts), better = improved(st);
+  const got = {
+    b_first: counted.some(l => l.sid), b_warm10: warmN >= 10, b_check10: chkDays.length >= 10, b_smart: smartN >= 1,
+    b_rpe10: rpeN >= 10, b_deload: deloadKept(st, ts), b_streak4: streak >= 4, b_streak12: streak >= 12,
+    b_ph1: (phaseRate(st, 0, ts) || 0) >= 0.8, b_ph2: (phaseRate(st, 1, ts) || 0) >= 0.8, b_ph3: (phaseRate(st, 2, ts) || 0) >= 0.8,
+    b_better: better >= 1, b_better5: better >= 5
+  };
+  const badges = BADGES.map(b => Object.assign({ got: !!got[b.id] }, b));
+  xp += badges.filter(b => b.got).length * XP.badge;
+
+  return { xp, rank: rankOf(xp), quests, badges, questLeft: quests.filter(q => !q.done).length, badgeN: badges.filter(b => b.got).length };
+}
+/* 前後兩次的差別：新拿到的徽章、升段 */
+function gameDiff(a, b) {
+  return {
+    xp: b.xp - a.xp,
+    up: b.rank.lv > a.rank.lv ? b.rank : null,
+    badges: b.badges.filter((x, i) => x.got && !a.badges[i].got),
+    quests: b.quests.filter((x, i) => x.done && !a.quests[i].done)
+  };
+}
+
+/* 建置時檢查 */
+function validateGame() {
+  const errs = [];
+  if (!getSession('m_recover')) errs.push('遊戲：找不到恢復伸展菜單 m_recover');
+  for (let i = 1; i < RANKS.length; i++) if (RANKS[i].xp <= RANKS[i - 1].xp) errs.push('遊戲：段位門檻要遞增');
+  const ids = BADGES.map(b => b.id);
+  if (new Set(ids).size !== ids.length) errs.push('遊戲：徽章代碼重複');
+  if (!LEARN.some(t => t.id === 'safety')) errs.push('遊戲：找不到知識文章 safety');
+  return errs;
+}
+
+/* ============================================================
    App 核心：狀態、儲存、小工具、圖示、球場圖、對話面板、聲音
    ============================================================ */
 const $ = (s, r) => (r || document).querySelector(s);
@@ -2746,7 +3137,10 @@ function defaultState() {
     logs: [],       // { id, date, kind, title, min, rpe, note, result, score, sid }
     tests: {},      // tests[檢測點][項目] = 數值
     arch: [],       // 前幾輪計畫的檢測數字
-    sb: { names: cleanNames(null), mode: 'D', first: 0 }
+    sb: { names: cleanNames(null), mode: 'D', first: 0 },
+    chk: {},        // chk[日期] = 練前自我檢查 { ill, pain, sleep, tired, res }
+    screen: null,   // 健康自評 { at: 日期, yes: 答「是」的題數 }
+    read: { safety: false }
   };
 }
 /* 不管來源是儲存空間還是貼上的備份，一律逐欄清洗，型別不對就用預設值 */
@@ -2766,7 +3160,8 @@ function normalize(s) {
       kg: (isFinite(kg) && kg >= 30 && kg <= 200) ? kg : null
     },
     day: cleanDays(s.day), over: cleanOver(s.over), logs: cleanLogs(s.logs), tests: cleanTests(s.tests), arch: cleanArch(s.arch),
-    sb: { names: cleanNames(sb.names), mode: sb.mode === 'S' ? 'S' : 'D', first: Number(sb.first) === 1 ? 1 : 0 }
+    sb: { names: cleanNames(sb.names), mode: sb.mode === 'S' ? 'S' : 'D', first: Number(sb.first) === 1 ? 1 : 0 },
+    chk: cleanChk(s.chk), screen: cleanScreen(s.screen), read: cleanRead(s.read)
   };
 }
 const firstRead = store.read();
@@ -2806,8 +3201,8 @@ const mirror = {
   queue() { if (!this.on || !this.ready) return; clearTimeout(this.timer); this.timer = setTimeout(() => this.put(), 300); },
   flush() { if (this.timer) { clearTimeout(this.timer); this.timer = null; this.put(); } }
 };
-const hasData = s => !!(s.setup || s.logs.length || s.arch.length || Object.keys(s.day).length || Object.keys(s.tests).length || Object.keys(s.over).length);
-function save() { store.write(S); mirror.queue(); }
+const hasData = s => !!(s.setup || s.logs.length || s.arch.length || Object.keys(s.day).length || Object.keys(s.tests).length || Object.keys(s.over).length || Object.keys(s.chk).length || s.screen);
+function save() { store.write(S); mirror.queue(); gameTick(); }
 /* 第一次開啟就把預設值存下來，計畫開始日才不會隨著日子往後漂。有第二份備份可查時，先查過再存（mirrorStart） */
 if (startedEmpty && !mirror.on) save();
 /* 啟動時呼叫一次。onRestore：從第二份備份還原之後，讓畫面重畫 */
@@ -3096,7 +3491,10 @@ function todayInfo() {
   let sid = null, src = null;
   if (own(S.over, ds) && getSession(S.over[ds])) { sid = S.over[ds]; src = 'over'; }
   else if (w >= 0 && sched[d].sid) { sid = sched[d].sid; src = 'plan'; }
-  return { t, ds, w, d, pos, sched, sid, src, sess: sid ? getSession(sid) : null, f: sid ? ctxFactor(sid, w) : 1 };
+  const chk = own(S.chk, ds) ? S.chk[ds] : null;
+  let f = sid ? ctxFactor(sid, w) : 1;
+  if (chk && chk.res === 'easy') f = Math.min(f, 0.6);           // 練前檢查建議輕量版：份量降到減量週的六成
+  return { t, ds, w, d, pos, sched, sid, src, sess: sid ? getSession(sid) : null, f, chk };
 }
 /* 畫面上正在顯示的那一堂課。打勾和完成都記在這裡，跨過午夜也不會記錯天 */
 let SHOWN = null;
@@ -3186,7 +3584,7 @@ function viewToday() {
       const planned = ti.w >= 0 && ti.sched[ti.d].sid;
       html += '<p class="small muted">今天改做這份課表。<button class="link" type="button" data-act="unover">' + (planned ? '換回計畫的課表' : '取消') + '</button></p>';
     }
-    html += hint;
+    html += hint + gameCardHTML() + alertsHTML() + readyHTML(ti);
     html += rowsHTML(ti.sess, lv, ti.f, { live: true, ck: rec.ck, h: 2 });
     if (lg) {
       html += '<div class="note-box"><div><b>今天的訓練已完成</b><span>' + esc(lg.min) + ' 分鐘' + (lg.rpe ? '，自覺強度 ' + esc(lg.rpe) : '') + '</span>' +
@@ -3210,7 +3608,7 @@ function viewToday() {
         '<div class="hero-act"><button class="btn sm" type="button" data-act="do" data-sid="m_recover">做恢復伸展</button>' +
         (nx ? '<button class="btn sm ghost" type="button" data-act="do" data-sid="' + nx.sid + '">今天改練下一堂</button>' : '') + '</div>' + weekStrip(ti) + '</section>';
     }
-    html += hint;
+    html += hint + gameCardHTML() + alertsHTML();
     if (nx) {
       const ns = getSession(nx.sid), nf = ctxFactor(nx.sid, nx.w);
       html += '<div class="head"><div><h2 class="h-sec">' + esc(ns.n) + '</h2>' +
@@ -3365,6 +3763,7 @@ function viewLog() {
   const totalMin = S.logs.reduce((n, l) => n + (+l.min || 0), 0), streak = streakWeeks(S.logs, ts);
   const hrs = totalMin / 60;
   let html = '<div class="head"><div><h1 class="h-page">紀錄</h1></div><button class="btn sm" type="button" data-act="addLog">' + icon('plus') + '新增紀錄</button></div>';
+  html += gameCardHTML() + alertsHTML();
   html += '<div class="tiles">' +
     '<div class="tile"><span>本週訓練</span><b>' + cur.count + '<small>次</small></b></div>' +
     '<div class="tile"><span>本週時間</span><b>' + (cur.court + cur.off) + '<small>分鐘</small></b></div>' +
@@ -3482,6 +3881,189 @@ function drawChart() {
     el.addEventListener('blur', () => { tip.hidden = true; });
   });
 }
+
+/* ============================================================
+   闖關的畫面：今日的段位卡、練前檢查、負荷提醒、健康自評、闖關面板
+   ============================================================ */
+
+/* ---------- 經驗值變化的提示 ---------- */
+var GS = null;                                        // 上一次算出來的闖關狀態（用 var：app-core 第一次存檔時這裡還沒執行到）
+/* silent：還原備份、清除資料之後重新對齊，不跳提示 */
+function gameTick(silent) {
+  let g;
+  try { g = gameState(S, todayStr()); } catch (e) { return; }
+  const prev = GS; GS = g;
+  if (silent || !prev) return;
+  const df = gameDiff(prev, g);
+  if (df.xp <= 0) return;
+  const parts = ['+' + df.xp + ' 經驗值'];
+  if (df.up) parts.push('升到第 ' + df.up.lv + ' 段：' + df.up.n);
+  df.badges.forEach(b => parts.push('新徽章：' + b.n));
+  df.quests.forEach(q => parts.push('任務完成：' + q.n));
+  setTimeout(() => {                                    // 讓呼叫端自己的提示先出來，再接在後面
+    const t = $('#toast'), cur = t && !t.hidden ? t.textContent : '';
+    toast((cur ? cur + '。' : '') + parts.join('。'));
+    if (df.up || df.badges.length) { beep(988, 120, 0.35); setTimeout(() => beep(1319, 180, 0.35), 130); }
+  }, 0);
+}
+
+/* ---------- 今日：段位卡 ---------- */
+function gameCardHTML() {
+  const g = GS || gameState(S, todayStr()), r = g.rank;
+  const nextLine = r.next ? '再 ' + (r.next - r.xp) + ' 分升到「' + r.nextN + '」' : '已經是最高段位';
+  const q = g.quests.find(x => !x.done);
+  return '<button class="gcard" type="button" data-act="game" aria-label="闖關：第 ' + r.lv + ' 段 ' + r.n + '，' + r.xp + ' 經驗值，' + nextLine + '">' +
+    '<span class="g-lv"><b>' + r.lv + '</b><small>段</small></span>' +
+    '<span class="g-m"><b>' + esc(r.n) + '</b>' +
+      '<span class="xpbar" aria-hidden="true"><i style="width:' + r.pct + '%"></i></span>' +
+      '<span class="small">' + r.xp + ' 分，' + nextLine + '</span>' +
+      (q ? '<span class="small g-q">新手任務 ' + (g.quests.length - g.questLeft) + '/' + g.quests.length + '：' + esc(q.n) + '</span>'
+         : '<span class="small g-q">徽章 ' + g.badgeN + '/' + g.badges.length + '</span>') +
+    '</span><span class="row-chev">' + icon('chev') + '</span></button>';
+}
+
+/* ---------- 今日：負荷提醒、健康自評提醒 ---------- */
+function alertsHTML() {
+  let html = '';
+  const al = loadAlert(S.logs, todayStr());
+  if (al) html += '<div class="note-box warn" role="status"><div><b>' + esc(al.n) + '</b><span>' + esc(al.d) + '</span></div></div>';
+  if (S.screen && S.screen.yes > 0) {
+    html += '<div class="note-box warn"><div><b>健康自評有 ' + S.screen.yes + ' 題答「是」</b><span>開始高強度訓練前，先請醫師評估，告訴他你要做的訓練。評估之前用入門程度，自覺強度保持在 5 分以下。</span>' +
+      '<div><button class="btn sm ghost" type="button" data-act="screen">重新作答</button></div></div></div>';
+  }
+  return html;
+}
+
+/* ---------- 今日：練前檢查 ---------- */
+const RES_CLS = { go: '', easy: '', recover: ' warn', rest: ' warn' };
+function readyHTML(ti) {
+  if (!ti.sess || sessLog(ti.ds, ti.sid)) return '';
+  if (!ti.chk) {
+    return '<div class="note-box ready"><div><b>練之前，30 秒自我檢查</b><span>回答 4 個問題：有沒有生病、哪裡痛、睡得好不好、累不累。App 會告訴你今天照練、練輕量版，還是休息。</span>' +
+      '<div><button class="btn sm" type="button" data-act="check">開始檢查</button></div></div></div>';
+  }
+  const r = READY[ti.chk.res];
+  return '<div class="note-box' + RES_CLS[ti.chk.res] + '"><div><b>今日檢查：' + esc(r.n) + '</b><span>' + esc(r.d) + '</span>' +
+    '<div class="btn-row">' + (ti.chk.res === 'recover' && ti.sid !== 'm_recover' ? '<button class="btn sm" type="button" data-act="do" data-sid="m_recover">改做恢復伸展</button>' : '') +
+    '<button class="btn sm ghost" type="button" data-act="check">重新檢查</button></div></div></div>';
+}
+
+/* ---------- 練前檢查的面板 ---------- */
+const CHK_LBL = { sleep: ['睡得好', '普通', '很差'], tired: ['精神好', '有點累', '很累'] };
+function chkBody(a) {
+  const seg = (name, label, opts) => '<div class="field"><span class="lbl" id="l-' + name + '">' + label + '</span><div class="seg wide" role="group" aria-labelledby="l-' + name + '">' +
+    opts.map((o, i) => '<button type="button" data-act="chkPick" data-name="' + name + '" data-v="' + i + '" aria-pressed="' + (a[name] === i) + '">' + o + '</button>').join('') + '</div></div>';
+  return '<div class="form">' +
+    seg('ill', '今天有發燒、喉嚨以下的感冒症狀（咳嗽、胸悶、全身痠痛），或最近運動時胸痛、頭暈嗎？', ['沒有', '有']) +
+    '<div class="field"><span class="lbl" id="l-pain">身上最痛的地方，現在幾分？（0 不痛，10 痛到受不了）</span><div class="rpe pain" role="group" aria-labelledby="l-pain">' +
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => '<button type="button" data-act="chkPick" data-name="pain" data-v="' + n + '" aria-pressed="' + (a.pain === n) + '">' + n + '</button>').join('') + '</div></div>' +
+    seg('sleep', '昨晚睡得', CHK_LBL.sleep) +
+    seg('tired', '現在的精神', CHK_LBL.tired) +
+    '<p class="small muted">痠不算痛。痛指的是關節、肌腱或肌肉某一點的刺痛、壓痛或卡住的感覺。</p></div>';
+}
+function openCheck() {
+  const ti = todayInfo(), old = ti.chk;
+  const a = old ? { ill: old.ill ? 1 : 0, pain: old.pain, sleep: old.sleep, tired: old.tired } : { ill: null, pain: null, sleep: null, tired: null };
+  const d = openSheet({ title: '練前自我檢查', body: chkBody(a), foot: '<button class="btn" type="button" data-act="chkSave">看今天的建議</button>' });
+  d._chk = a; d.setAttribute('data-ds', ti.ds);
+}
+function chkSave(d) {
+  const a = d._chk, miss = ['ill', 'pain', 'sleep', 'tired'].filter(k => a[k] === null);
+  if (miss.length) { toast('還有 ' + miss.length + ' 題沒有回答'); return; }
+  const ds = d.getAttribute('data-ds'), o = { ill: a.ill === 1, pain: a.pain, sleep: a.sleep, tired: a.tired };
+  o.res = readiness(o);
+  S.chk[ds] = o; save();
+  const r = READY[o.res];
+  const acts = {
+    go: '<button class="btn" type="button" data-act="close">開始練</button>',
+    easy: '<button class="btn" type="button" data-act="close">好，練輕量版</button>',
+    recover: '<button class="btn" type="button" data-act="do" data-sid="m_recover">改做恢復伸展</button>',
+    rest: '<button class="btn" type="button" data-act="close">今天休息</button>'
+  };
+  setSheetBody(d, '<div class="ready-res' + RES_CLS[o.res] + '"><b>' + esc(r.n) + '</b><p>' + esc(r.d) + '</p></div>' +
+    (o.res !== 'go' ? '<p class="small muted">照這個建議做，闖關會多 ' + XP.smart + ' 分。休息也是訓練的一部分。</p>' : ''));
+  const f = $('.sheet-f', d); if (f) f.innerHTML = acts[o.res];
+  focusIn(d, '.sheet-f .btn');
+  render(true);
+}
+
+/* ---------- 健康自評 ---------- */
+function openScreen() {
+  const ans = SCREEN_Q.map(() => null);
+  const body = '<div class="form"><p class="small muted">運動前的一般健康問題，參考國際通用的 PAR-Q+ 問卷。答案只存在這台裝置，只記錄答「是」的題數。</p>' +
+    SCREEN_Q.map((q, i) => '<div class="field"><span class="lbl" id="l-sq' + i + '">' + (i + 1) + '. ' + esc(q) + '</span><div class="seg wide" role="group" aria-labelledby="l-sq' + i + '">' +
+      ['否', '是'].map((o, v) => '<button type="button" data-act="sqPick" data-i="' + i + '" data-v="' + v + '" aria-pressed="false">' + o + '</button>').join('') + '</div></div>').join('') + '</div>';
+  const d = openSheet({ title: '健康自評', body, foot: '<button class="btn" type="button" data-act="sqSave">完成</button>' });
+  d._sq = ans;
+}
+function sqSave(d) {
+  const a = d._sq, miss = a.filter(v => v === null).length;
+  if (miss) { toast('還有 ' + miss + ' 題沒有回答'); return; }
+  const yes = a.filter(v => v === 1).length;
+  S.screen = { at: todayStr(), yes };
+  if (yes > 0 && S.set.level > 0 && !S.setup) S.set.level = 0;            // 還沒自己設定過程度：先用入門
+  save();
+  setSheetBody(d, yes
+    ? '<div class="ready-res warn"><b>有 ' + yes + ' 題答「是」</b><p>開始高強度訓練前，先請醫師（或醫師轉介的物理治療師）評估，告訴他你要做的訓練。評估之前用入門程度，自覺強度保持在 5 分以下，暖身做足。</p></div>'
+    : '<div class="ready-res"><b>7 題都是「否」</b><p>可以放心從計畫開始。一樣從暖身做起、運動量慢慢加；身體狀況有變化，再回來重做一次。</p></div>');
+  const f = $('.sheet-f', d); if (f) f.innerHTML = '<button class="btn" type="button" data-act="close">好</button>';
+  focusIn(d, '.sheet-f .btn');
+  render(true);
+}
+
+/* ---------- 闖關面板 ---------- */
+const QUEST_BTN = {
+  screen: '<button class="btn sm" type="button" data-act="screen">去做</button>',
+  settings: '<button class="btn sm" type="button" data-act="settings">去設定</button>',
+  readSafety: '<button class="btn sm" type="button" data-act="readSafety">去讀</button>',
+  testW0: '<button class="btn sm" type="button" data-act="tests" data-k="w0">去檢測</button>',
+  goToday: '<button class="btn sm" type="button" data-act="goToday">到今日</button>'
+};
+function gameBody() {
+  const g = gameState(S, todayStr()), r = g.rank;
+  let html = '<section class="g-head"><span class="g-lv big"><b>' + r.lv + '</b><small>段</small></span><div class="g-m"><b>' + esc(r.n) + '</b>' +
+    '<span class="xpbar" aria-hidden="true"><i style="width:' + r.pct + '%"></i></span>' +
+    '<span class="small">' + r.xp + ' 分' + (r.next ? '，再 ' + (r.next - r.xp) + ' 分升到「' + esc(r.nextN) + '」' : '，已經是最高段位') + '</span></div></section>';
+
+  html += '<section class="stack"><h3 class="h-sub">新手任務　' + (g.quests.length - g.questLeft) + '/' + g.quests.length + '</h3><ul class="quests">' +
+    g.quests.map(q => '<li class="' + (q.done ? 'is-done' : '') + '"><span class="q-ck" aria-hidden="true">' + (q.done ? icon('check') : '') + '</span>' +
+      '<span class="q-m"><b>' + esc(q.n) + '</b><span>' + esc(q.d) + (q.done ? '（完成）' : '') + '</span></span>' + (q.done ? '' : QUEST_BTN[q.act]) + '</li>').join('') + '</ul></section>';
+
+  html += '<section class="stack"><h3 class="h-sub">徽章　' + g.badgeN + '/' + g.badges.length + '</h3><ul class="badges">' +
+    g.badges.map(b => '<li class="' + (b.got ? 'is-got' : '') + '"><span class="bd-ic" aria-hidden="true">' + icon('shuttle') + '</span>' +
+      '<b>' + esc(b.n) + '</b><span>' + esc(b.d) + '</span><span class="sr">' + (b.got ? '已取得' : '尚未取得') + '</span></li>').join('') + '</ul></section>';
+
+  html += '<section class="stack"><h3 class="h-sub">怎麼得分</h3>' + TBL_WRAP + '<table class="tbl num-r"><tbody>' +
+    XP_RULES.map(x => '<tr><th scope="row">' + esc(x[0]) + '</th><td>' + x[1] + '</td></tr>').join('') + '</tbody></table></div>' +
+    '<p class="small muted">一天最多算一堂，多練、練更累都不會多拿分；練前檢查建議休息而你照做，一樣有分。每一條規則的根據在知識的「安全訓練的依據」。</p>' +
+    '<div><button class="btn sm ghost" type="button" data-act="readSafety">看安全訓練的依據</button></div></section>';
+
+  html += '<section class="stack"><h3 class="h-sub">段位</h3><ol class="ranks">' +
+    RANKS.map((x, i) => '<li class="' + (i + 1 === r.lv ? 'is-cur' : i + 1 < r.lv ? 'is-past' : '') + '"><span>' + (i + 1) + ' 段</span><b>' + esc(x.n) + '</b><span>' + x.xp + ' 分</span></li>').join('') +
+    '</ol><p class="small muted">照計畫練完一輪 12 週，大約到第 7、8 段。</p></section>';
+  return html;
+}
+function openGame() { openSheet({ title: '闖關', body: gameBody() }); }
+function markSafetyRead() { if (!S.read.safety) { S.read.safety = true; save(); } }
+
+const GAME_ACT = {
+  game: () => openGame(),
+  check: () => openCheck(),
+  chkPick: el => {
+    const d = el.closest('dialog'), name = el.getAttribute('data-name'), v = +el.getAttribute('data-v');
+    d._chk[name] = v;
+    $$('button', el.parentNode).forEach(b => b.setAttribute('aria-pressed', String(b === el)));
+  },
+  chkSave: el => chkSave(el.closest('dialog')),
+  screen: () => { closeAllSheets(); openScreen(); },
+  sqPick: el => {
+    const d = el.closest('dialog');
+    d._sq[+el.getAttribute('data-i')] = +el.getAttribute('data-v');
+    $$('button', el.parentNode).forEach(b => b.setAttribute('aria-pressed', String(b === el)));
+  },
+  sqSave: el => sqSave(el.closest('dialog')),
+  readSafety: () => { closeAllSheets(); UI.learn = 'safety'; markSafetyRead(); go('learn'); }
+};
 
 /* ============================================================
    工具：間歇計時、步法點位、計分板
@@ -3952,7 +4534,9 @@ function openFinish() {
     body: '<div class="form"><p class="muted">' + esc(sess.n) + '</p>' +
       '<div class="field"><label for="f-min">實際練了幾分鐘</label><input class="inp" id="f-min" type="number" inputmode="numeric" min="0" max="600" value="' + min + '"></div>' +
       rpeHTML(null) +
-      '<div class="field"><label for="f-note">備註</label><textarea class="inp" id="f-note" placeholder="例：高遠球到位變多了；反手還是容易出界"></textarea></div></div>',
+      '<div class="field"><label for="f-note">備註</label><textarea class="inp" id="f-note" placeholder="例：高遠球到位變多了；反手還是容易出界"></textarea></div>' +
+      (sess.blocks.some(b => b.t === '暖身') && !warmDone(S, sh.ds, sh.sid) ? '<p class="small muted">暖身還沒有全部打勾。暖身做完並打勾，這堂課多 ' + XP.warm + ' 分。</p>' : '') +
+      '<p class="small muted">記下自覺強度多 ' + XP.rpe + ' 分。照實記就好，分數高低不影響經驗值。</p></div>',
     foot: '<button class="btn" type="button" data-act="finishSave">儲存紀錄</button>'
   });
   d.setAttribute('data-ds', sh.ds); d.setAttribute('data-sid', sh.sid);        // 記下是哪一天的哪一堂，跨過午夜也不會寫錯
@@ -4101,7 +4685,7 @@ function restoreApply(btn) {
   try { obj = JSON.parse(raw); } catch (e) { obj = null; }
   if (!isObj(obj) || !isObj(obj.set) || !Array.isArray(obj.logs)) { toast('這不是有效的備份文字，請確認有完整貼上'); return; }
   if (!armed(btn, '再按一次，確定取代')) return;
-  S = normalize(obj); save(); UI.planWeek = null; SBG = null;
+  S = normalize(obj); GS = null; save(); UI.planWeek = null; SBG = null;
   closeSheet(d); render(); toast('已還原 ' + S.logs.length + ' 筆紀錄');
 }
 
@@ -4194,13 +4778,13 @@ const ACT = {
   menuSeg: el => { UI.menuSeg = el.getAttribute('data-v'); render(true); },
   menuWhere: el => { UI.menuWhere = el.getAttribute('data-v'); render(true); },
   exCat: el => { UI.exCat = el.getAttribute('data-v'); render(true); },
-  learn: el => { UI.learn = el.getAttribute('data-id') || null; render(); },
+  learn: el => { UI.learn = el.getAttribute('data-id') || null; if (UI.learn === 'safety') markSafetyRead(); render(); },
   chartTable: () => { UI.chartTable = !UI.chartTable; render(true); },
   backup: () => openBackup(),
   restore: () => openRestore(),
   wipe: el => {
     if (!armed(el, '再按一次，清除全部')) return;
-    S = defaultState(); save(); UI.planWeek = null; SBG = null; render(); toast('資料已清除');
+    S = defaultState(); GS = null; save(); UI.planWeek = null; SBG = null; render(); toast('資料已清除');
   },
   bkCopy: el => {
     const ta = $('#bk-text', el.closest('dialog'));
@@ -4276,6 +4860,7 @@ const ACT = {
   sbReset: () => { SBG = null; sbRenderSetup(); focusIn(SBD, '[data-act="sbStart"]'); },
   sbAskReset: el => { if (SBG && (SBG.score[0] || SBG.score[1] || SBG.results.length) && !SBG.over && !armed(el, '再按一次，放棄這場')) return; SBG = null; sbRenderSetup(); }
 };
+Object.assign(ACT, GAME_ACT);
 
 document.addEventListener('click', e => {
   const tabEl = e.target.closest('[data-tab]');
@@ -4344,6 +4929,7 @@ document.addEventListener('input', e => {
 window.addEventListener('storage', e => {
   if (e.key !== KEY || !e.newValue) return;
   try { S = normalize(JSON.parse(e.newValue)); } catch (er) { return; }
+  gameTick(true);
   if (!document.querySelector('dialog[open]')) render(true);
 });
 
@@ -4370,8 +4956,9 @@ function init() {
   let h = '';
   try { h = (window.location.hash || '').replace('#', ''); } catch (e) { h = ''; }
   if (TABS.some(t => t[0] === h)) UI.tab = h;
+  gameTick(true);
   render();
-  mirrorStart(() => { UI.planWeek = null; render(); toast('這台裝置上的紀錄曾被清除，已自動還原'); });
+  mirrorStart(() => { gameTick(true); UI.planWeek = null; render(); toast('這台裝置上的紀錄曾被清除，已自動還原'); });
   if (STANDALONE) {
     try {
       const secure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';

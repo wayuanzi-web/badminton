@@ -402,6 +402,60 @@ const LEARN = [
 <p class="note">40 歲以上很久沒運動，或有心血管、慢性疾病的人，開始高強度訓練前先請醫師評估。</p>`
   },
   {
+    id: 'safety', n: '安全訓練的依據', sub: '這個 App 怎麼排課、怎麼闖關、怎麼避免受傷',
+    html: `
+<p>這個 App 的闖關只獎勵一件事：照計畫、有暖身、有聽身體地練。下面是每一條規則背後的根據。</p>
+
+<h3>闖關怎麼給分</h3>
+<ul>
+<li>完成課表、把暖身做完、記下自覺強度、做練前檢查，都有經驗值。</li>
+<li><b>一天最多算一堂。</b>同一天多練不會多拿分，練得更累也不會。</li>
+<li>練前檢查建議減量或休息，照做也有分。休息是訓練的一部分。</li>
+<li>徽章給的是好習慣：暖身、誠實記錄強度、減量週不多練、連續幾週不間斷。</li>
+</ul>
+
+<h3>依據</h3>
+<div class="tbl-wrap"><table class="tbl">
+<thead><tr><th scope="col">App 裡的做法</th><th scope="col">根據</th></tr></thead>
+<tbody>
+<tr><th scope="row">每堂課先暖身，暖身做完才有加分</th><td>結構化的暖身計畫（例如足球的 FIFA 11+）在隨機對照試驗中明顯降低運動傷害。</td></tr>
+<tr><th scope="row">每週 1–2 次場外肌力課</th><td>統合分析發現肌力訓練能把運動傷害減少到約三分之一；單靠伸展沒有預防效果。</td></tr>
+<tr><th scope="row">三週加量、一週減量</th><td>漸進負荷加上定期恢復，是週期化訓練的基本做法；身體在恢復期才把訓練的效果留下來。</td></tr>
+<tr><th scope="row">練完記自覺強度（1–10）</th><td>「分鐘數 × 自覺強度」（session-RPE）是簡單又有研究支持的訓練負荷估算法。</td></tr>
+<tr><th scope="row">這週加太快會提醒</th><td>訓練量突然暴增和受傷有關。這個 App 拿這週跟前四週平均比，超過 1.3 倍提醒、1.5 倍建議休息。這個比值在學界有爭議，只當作提醒，不當作預測。</td></tr>
+<tr><th scope="row">練前疼痛評分</th><td>參考阿基里斯腱病變復健研究的疼痛監測做法：練的時候痛在 5 分以內、隔天早上沒有更痛，可以繼續練；超過就減量。這個 App 對沒有醫師追蹤的一般球友取更保守的 3 分。</td></tr>
+<tr><th scope="row">發燒或胸悶就休息</th><td>運動醫學常用的「脖子原則」：只有流鼻水、鼻塞可以輕量活動；發燒、咳嗽、胸悶、全身痠痛就休息。</td></tr>
+<tr><th scope="row">睡不好就練輕量版</th><td>青少年運動員的研究發現，平均睡不到 8 小時，受傷風險約高 1.7 倍。</td></tr>
+<tr><th scope="row">開始前的健康自評</th><td>題目參考國際通用的運動前健康問卷 PAR-Q+；有任何一題答「是」，先請醫師評估。</td></tr>
+<tr><th scope="row">一週練多少</th><td>世界衛生組織建議成人每週 150–300 分鐘中等強度活動，加上至少 2 天肌力訓練。這份計畫一般每週 3 堂，落在這個範圍內。</td></tr>
+</tbody></table></div>
+
+<h3>練前檢查怎麼判斷</h3>
+<div class="tbl-wrap"><table class="tbl">
+<tbody>
+<tr><th scope="row">照課表練</th><td>不痛、睡得好、精神好。</td></tr>
+<tr><th scope="row">輕量版</th><td>有地方痛 1–3 分，或沒睡好、很累。份量降到六成。</td></tr>
+<tr><th scope="row">恢復伸展</th><td>有地方痛 4–6 分。只做不會痛的伸展。</td></tr>
+<tr><th scope="row">休息</th><td>痛到 7 分以上、發燒、喉嚨以下的感冒症狀、胸悶或頭暈。</td></tr>
+</tbody></table></div>
+<p>羽球最常受傷的是下肢（腳踝、膝蓋、阿基里斯腱），其次是肩膀和手肘，詳見「傷害預防與處理」。</p>
+
+<h3>參考資料</h3>
+<ul class="src-list">
+<li>Soligard T, et al. Comprehensive warm-up programme to prevent injuries in young female footballers. BMJ 2008;337:a2469.</li>
+<li>Lauersen JB, Bertelsen DM, Andersen LB. The effectiveness of exercise interventions to prevent sports injuries. Br J Sports Med 2014;48:871–877.</li>
+<li>Foster C, et al. A new approach to monitoring exercise training. J Strength Cond Res 2001;15(1):109–115.</li>
+<li>Gabbett TJ. The training–injury prevention paradox. Br J Sports Med 2016;50:273–280.</li>
+<li>Impellizzeri FM, et al. Acute:chronic workload ratio: conceptual issues and fundamental pitfalls. Int J Sports Physiol Perform 2020;15(6):907–913.</li>
+<li>Silbernagel KG, et al. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. Am J Sports Med 2007;35(6):897–906.</li>
+<li>Milewski MD, et al. Chronic lack of sleep is associated with increased sports injuries in adolescent athletes. J Pediatr Orthop 2014;34(2):129–133.</li>
+<li>Warburton DER, et al. The PAR-Q+ and ePARmed-X+. Health Fit J Can 2011;4(2):3–23.</li>
+<li>World Health Organization. Guidelines on physical activity and sedentary behaviour. 2020.</li>
+<li>Phomsoupha M, Laffaye G. Injuries in badminton: a review. Sci Sports 2020;35(4):189–199.</li>
+</ul>
+<p class="src">以上是一般運動保健資訊，不能取代醫師或物理治療師的診斷。</p>`
+  },
+  {
     id: 'matchday', n: '比賽日', sub: '賽前、賽中、賽後該做的事',
     html: `
 <h3>前一天</h3>

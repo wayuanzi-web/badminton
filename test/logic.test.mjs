@@ -3,13 +3,14 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const ctx = vm.createContext({ console, Math, Date, JSON, Set, Object, Array, String, Number, isNaN });
-for (const f of ['data-ex.js', 'data-plan.js', 'data-learn.js', 'logic.js']) {
+for (const f of ['data-ex.js', 'data-plan.js', 'data-learn.js', 'logic.js', 'game.js']) {
   vm.runInContext(fs.readFileSync(new URL('../src/' + f, import.meta.url), 'utf8'), ctx, { filename: f });
 }
 const L = vm.runInContext(`({ EX, SESS, MENUS, PHASES, LOADS, LEARN, TESTS, CATS, validateData, weekIndex, planPos, weekSchedule, fmtRx, toolSpec, sessionMinutes,
   buildTimerSeq, seqTotal, fmtClock, fmtDur, sbNew, sbPoint, sbNextGame, sbUndo, sbSwap, sbInfo, sbWon, sbScoreText, weeklySeries, streakWeeks, axisFor,
   dietCalc, ymd, parseYmd, mondayOf, addDays, dow, dayDiff, itemsOf, countItems, nextCall, CALL_POINTS, isYmd, getSession, setsFor,
-  cleanLogs, cleanTests, cleanDays, cleanOver, cleanNames, cleanArch })`, ctx);
+  cleanLogs, cleanTests, cleanDays, cleanOver, cleanNames, cleanArch,
+  readiness, cleanChk, cleanScreen, loadWeeks, loadAlert, gameState, gameDiff, rankOf, warmDone, validateGame, RANKS, XP, SCREEN_Q })`, ctx);
 
 let n = 0; const t = (name, fn) => { fn(); n++; console.log('ok  ' + name); };
 
@@ -216,4 +217,99 @@ t('跳躍量控制在建議範圍內', () => {
   Object.keys(L.SESS).forEach(id => [0, 1, 2].forEach(lv => assert.ok(contacts(L.SESS[id], lv) <= cap[lv], id + ' 程度 ' + lv + '：' + contacts(L.SESS[id], lv))));
   assert.equal(contacts(L.SESS.p2oX, 0), 92); assert.equal(contacts(L.SESS.p2oX, 1), 118); assert.equal(contacts(L.SESS.p2oX, 2), 134);
 });
+/* ---------- 闖關 ---------- */
+const st0 = over => Object.assign({ setup: false, set: { level: 1, days: ['rest', 'court', 'rest', 'off', 'rest', 'court', 'rest'], start: '2026-10-05' },
+  day: {}, over: {}, logs: [], tests: {}, arch: [], chk: {}, screen: null, read: { safety: false } }, over || {});
+t('game: validate', () => { assert.deepEqual([...L.validateGame()], []); });
+t('game: readiness', () => {
+  const r = o => L.readiness(Object.assign({ ill: false, pain: 0, sleep: 0, tired: 0 }, o));
+  assert.equal(r({}), 'go');
+  assert.equal(r({ pain: 1 }), 'easy'); assert.equal(r({ pain: 3 }), 'easy');
+  assert.equal(r({ pain: 4 }), 'recover'); assert.equal(r({ pain: 6 }), 'recover');
+  assert.equal(r({ pain: 7 }), 'rest'); assert.equal(r({ ill: true }), 'rest');
+  assert.equal(r({ sleep: 2 }), 'easy'); assert.equal(r({ tired: 2 }), 'easy'); assert.equal(r({ sleep: 1, tired: 1 }), 'go');
+  assert.equal(r({ sleep: 1, tired: 2 }), 'easy');
+  assert.equal(r({ pain: 'x', sleep: -3, tired: 99 }), 'easy');           // 怪值被夾回範圍
+});
+t('game: cleanChk / cleanScreen', () => {
+  const c = L.cleanChk({ '2026-10-06': { ill: 0, pain: 9, sleep: 0, tired: 0, res: 'go' }, 'bad': {}, '2026-10-07': 'x' });
+  assert.deepEqual(Object.keys(c), ['2026-10-06']);
+  assert.equal(c['2026-10-06'].res, 'rest');                         // 存進來的結果不算數，一律重算
+  assert.equal(L.cleanScreen({ at: '2026-10-06', yes: 99 }).yes, L.SCREEN_Q.length);
+  assert.equal(L.cleanScreen({ at: 'x', yes: 1 }), null); assert.equal(L.cleanScreen(null), null);
+});
+t('game: ranks', () => {
+  assert.equal(L.rankOf(0).lv, 1); assert.equal(L.rankOf(149).lv, 1); assert.equal(L.rankOf(150).lv, 2);
+  const top = L.rankOf(99999); assert.equal(top.lv, L.RANKS.length); assert.equal(top.next, null); assert.equal(top.pct, 100);
+  assert.equal(L.rankOf(275).pct, 50);
+});
+t('game: xp only one session per day, no reward for more', () => {
+  const one = st0({ logs: [{ id: 'a', date: '2026-10-06', kind: 'court', min: 90, rpe: 6, sid: 'p1cA' }] });
+  const two = st0({ logs: one.logs.concat([{ id: 'b', date: '2026-10-06', kind: 'court', min: 120, rpe: 9, title: '加練' }]) });
+  const g1 = L.gameState(one, '2026-10-06'), g2 = L.gameState(two, '2026-10-06');
+  assert.equal(g1.xp, g2.xp);
+  assert.ok(g1.badges.find(b => b.id === 'b_first').got);
+  // 未來日期的紀錄不算
+  assert.equal(L.gameState(st0({ logs: [{ id: 'f', date: '2026-12-01', kind: 'court', min: 60, sid: 'p1cA' }] }), '2026-10-06').xp, 0);
+});
+t('game: warm-up bonus and first quest', () => {
+  const sess = L.getSession('p1cA'), wi = sess.blocks.findIndex(b => b.t === '暖身');
+  const ck = {}; L.itemsOf(sess.blocks[wi], 1).forEach(i => { ck[wi + '-' + sess.blocks[wi].items.indexOf(i)] = 1; });
+  const base = { logs: [{ id: 'a', date: '2026-10-06', kind: 'court', min: 90, rpe: null, sid: 'p1cA' }] };
+  const no = L.gameState(st0(base), '2026-10-06');
+  const yes = L.gameState(st0(Object.assign({ day: { '2026-10-06': { p1cA: { ck } } } }, base)), '2026-10-06');
+  assert.equal(yes.xp - no.xp, L.XP.warm + L.XP.quest);
+  assert.ok(yes.quests.find(q => q.id === 'first').done); assert.ok(!no.quests.find(q => q.id === 'first').done);
+  const part = Object.assign({}, ck); delete part[Object.keys(part)[0]];
+  assert.ok(!L.warmDone(st0({ day: { '2026-10-06': { p1cA: { ck: part } } } }), '2026-10-06', 'p1cA'));
+});
+t('game: smart rest only when obeyed', () => {
+  const chk = { '2026-10-06': { ill: true, pain: 0, sleep: 0, tired: 0, res: 'rest' } };
+  assert.equal(L.gameState(st0({ chk }), '2026-10-06').xp, L.XP.check);         // 當天還沒過完，先不算照做
+  const rested = L.gameState(st0({ chk }), '2026-10-07');
+  const ignored = L.gameState(st0({ chk, logs: [{ id: 'a', date: '2026-10-06', kind: 'court', min: 90, rpe: 8, sid: 'p1cA' }] }), '2026-10-07');
+  assert.equal(rested.xp, L.XP.check + L.XP.smart + L.XP.badge);                  // 檢查 + 照做 + 聰明休息徽章
+  assert.ok(rested.badges.find(b => b.id === 'b_smart').got);
+  assert.ok(!ignored.badges.find(b => b.id === 'b_smart').got);
+  const recov = L.gameState(st0({ chk: { '2026-10-06': { pain: 5, res: 'recover' } }, logs: [{ id: 'r', date: '2026-10-06', kind: 'off', min: 12, rpe: 2, sid: 'm_recover' }] }), '2026-10-06');
+  assert.ok(recov.badges.find(b => b.id === 'b_smart').got);
+  const easyHard = L.gameState(st0({ chk: { '2026-10-06': { pain: 2, res: 'easy' } }, logs: [{ id: 'h', date: '2026-10-06', kind: 'court', min: 60, rpe: 9 }] }), '2026-10-06');
+  assert.ok(!easyHard.badges.find(b => b.id === 'b_smart').got);
+});
+t('game: load alerts', () => {
+  const lg = (date, min, rpe) => ({ id: date + min, date, kind: 'court', min, rpe });
+  const steady = ['2026-09-08', '2026-09-15', '2026-09-22', '2026-09-29'].map(d => lg(d, 60, 6));
+  assert.equal(L.loadAlert(steady.concat([lg('2026-10-06', 60, 6)]), '2026-10-07'), null);
+  const climb = L.loadAlert(steady.concat([lg('2026-10-05', 60, 6), lg('2026-10-06', 30, 6)]), '2026-10-07');
+  assert.equal(climb.k, 'climb');
+  const spike = L.loadAlert(steady.concat([lg('2026-10-05', 120, 6), lg('2026-10-07', 30, 4)]), '2026-10-07');
+  assert.equal(spike.k, 'spike');
+  assert.equal(L.loadAlert([lg('2026-10-05', 90, 8), lg('2026-10-07', 90, 9)], '2026-10-07').k, 'hard');
+  assert.equal(L.loadAlert([lg('2026-10-06', 60, 5)], '2026-10-07'), null);                 // 第一次使用不算「剛回來」
+  assert.equal(L.loadAlert([lg('2026-08-20', 60, 5), lg('2026-10-06', 60, 5)], '2026-10-07').k, 'back');
+  const w = L.loadWeeks([lg('2026-10-06', 60, null)], '2026-10-07', 2);
+  assert.equal(w[1].load, 300);                                                             // 沒記強度用 5 分估
+});
+t('game: tests, quests and diff', () => {
+  const a = L.gameState(st0(), '2026-10-06');
+  assert.equal(a.xp, 0); assert.equal(a.questLeft, 5);
+  const b = L.gameState(st0({ setup: true, screen: { at: '2026-10-06', yes: 0 }, read: { safety: true }, tests: { w0: { six: 30, rope: 80 }, w4: { six: 27, rope: 70 } } }), '2026-10-06');
+  assert.equal(b.questLeft, 1);
+  assert.ok(b.badges.find(x => x.id === 'b_better').got);                // 米字步秒數變少
+  assert.equal(b.xp, 4 * L.XP.quest + 2 * L.XP.test + L.XP.badge);
+  const df = L.gameDiff(a, b);
+  assert.equal(df.xp, b.xp); assert.equal(df.quests.length, 4); assert.equal(df.badges.length, 1); assert.ok(df.up);
+});
+t('game: phase and deload badges', () => {
+  const st = st0({ set: { level: 1, days: ['rest', 'court', 'rest', 'off', 'rest', 'court', 'rest'], start: '2026-07-06' } });
+  const logs = [];
+  for (let w = 0; w < 4; w++) [1, 3, 5].forEach(d => { const dt = L.addDays(L.parseYmd('2026-07-06'), 7 * w + d); logs.push({ id: 'l' + w + d, date: L.ymd(dt), kind: 'court', min: 60, rpe: 5, sid: 'p1cA' }); });
+  st.logs = logs;
+  const g = L.gameState(st, '2026-10-06');
+  assert.ok(g.badges.find(b => b.id === 'b_ph1').got); assert.ok(!g.badges.find(b => b.id === 'b_ph2').got);
+  assert.ok(g.badges.find(b => b.id === 'b_deload').got);
+  st.logs = logs.concat([{ id: 'x', date: '2026-07-28', kind: 'court', min: 60, rpe: 5 }]);   // 減量週多練一次
+  assert.ok(!L.gameState(st, '2026-10-06').badges.find(b => b.id === 'b_deload').got);
+});
+
 console.log('\n' + n + ' 組測試通過');

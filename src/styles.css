@@ -528,3 +528,53 @@ dialog.sheet.full .sheet-h { padding-top: calc(12px + env(safe-area-inset-top, 0
   .hero-prog .bar i, .stage-bar i { background: Highlight; }
   .c-court, .c-off, .lg-court, .lg-off { forced-color-adjust: none; }
 }
+
+/* ---------- 闖關 ----------
+   段位用記分板的黃底窄體數字，和計分板同一個語彙；經驗值條用地墊綠 */
+.gcard { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 12px 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r2); text-align: left; color: var(--ink); }
+.gcard:hover { border-color: var(--line-2); }
+.g-lv { flex: none; display: grid; place-items: center; align-content: center; width: 52px; height: 52px; border-radius: 8px; background: var(--mark); color: var(--mark-ink); line-height: 1; }
+.g-lv b { font-family: var(--num); font-size: 30px; font-weight: 700; }
+.g-lv small { font-size: 11px; font-weight: 700; color: var(--on-mark-dim); margin-top: 2px; }
+.g-lv.big { width: 64px; height: 64px; }
+.g-lv.big b { font-size: 38px; }
+.g-m { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.g-m > b { font-size: 16px; font-weight: 800; }
+.g-m .small { color: var(--ink-2); line-height: 1.45; }
+.g-m .g-q { color: var(--court-text); font-weight: 600; }
+.xpbar { display: block; height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.xpbar i { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--court); }
+.g-head { display: flex; align-items: center; gap: 14px; }
+.h-sub { font-size: 15px; font-weight: 800; }
+.note-box.ready { background: var(--off-soft); }
+.rpe.pain { grid-template-columns: repeat(11, 1fr); }
+@media (max-width: 380px) { .rpe.pain button { font-size: 16px; min-height: 38px; } }
+.ready-res { display: grid; gap: 6px; padding: 14px; border-radius: var(--r2); background: var(--court-soft); }
+.ready-res.warn { background: var(--warn-soft); }
+.ready-res b { font-size: 18px; font-weight: 800; }
+.ready-res p { color: var(--ink); line-height: 1.6; }
+.quests { display: grid; gap: 8px; }
+.quests li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r2); background: var(--surface); }
+.q-ck { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ctl); color: var(--on-panel); }
+.q-ck .ic { width: 16px; height: 16px; stroke-width: 2.6; }
+.quests li.is-done .q-ck { background: var(--court); border-color: var(--court); }
+.q-m { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.q-m b { font-size: 14px; }
+.q-m span { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+.quests li.is-done .q-m b { color: var(--ink-2); }
+.badges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.badges li { display: grid; gap: 3px; align-content: start; padding: 10px 12px; border: 1px dashed var(--line-2); border-radius: var(--r2); color: var(--ink-3); }
+.badges li b { font-size: 14px; color: var(--ink-2); }
+.badges li > span:not(.bd-ic) { font-size: 12px; line-height: 1.45; }
+.bd-ic { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); margin-bottom: 4px; }
+.bd-ic .ic { width: 20px; height: 20px; }
+.badges li.is-got { border-style: solid; border-color: var(--line); background: var(--surface); color: var(--ink-2); }
+.badges li.is-got b { color: var(--ink); }
+.badges li.is-got .bd-ic { background: var(--mark); color: var(--mark-ink); }
+.ranks { display: grid; gap: 2px; }
+.ranks li { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; padding: 6px 10px; border-radius: 8px; font-size: 14px; color: var(--ink-2); }
+.ranks li > span { font-family: var(--num); font-size: 16px; font-weight: 600; }
+.ranks li.is-past { color: var(--ink-3); }
+.ranks li.is-cur { background: var(--mark); color: var(--mark-ink); }
+.ranks li.is-cur b { font-weight: 800; }
+.src-list { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
