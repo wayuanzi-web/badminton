@@ -20,10 +20,10 @@ const SHORT = '羽球手冊';              // 手機主畫面圖示下方的名�
 const DESC = '羽球 12 週訓練計畫、日常菜單、規則與技術知識、計時與計分工具。資料只存在你的裝置。';
 
 /* 1. 資料檢查 */
-const dataFiles = ['src/data-ex.js', 'src/data-plan.js', 'src/data-learn.js', 'src/logic.js', 'src/game.js'];
+const dataFiles = ['src/data-ex.js', 'src/data-anat.js', 'src/data-video.js', 'src/data-plan.js', 'src/data-learn.js', 'src/logic.js', 'src/game.js'];
 const ctx = vm.createContext({ console });
 dataFiles.forEach(f => vm.runInContext(rd(f), ctx, { filename: f }));
-const errs = vm.runInContext('validateData().concat(validateGame())', ctx);
+const errs = vm.runInContext('validateData().concat(validateGame(), validateAnat(), validateVideo())', ctx);
 if (errs.length) { console.error('資料檢查失敗：\n' + [...errs].join('\n')); process.exit(1); }
 
 /* 2. 字型（數字用的窄體，內嵌後離線也能用） */
@@ -32,7 +32,7 @@ const face = w => '@font-face{font-family:"Barlow Condensed";font-style:normal;f
 const css = '/* 數字字型：Barlow Condensed（子集），© The Barlow Project Authors，SIL Open Font License 1.1 */\n' + face(600) + '\n' + face(700) + '\n' + rd('src/styles.css');
 
 /* 3. 程式 */
-const jsFiles = [...dataFiles, 'src/app-core.js', 'src/app-views.js', 'src/app-game.js', 'src/app-tools.js', 'src/app-main.js'];
+const jsFiles = [...dataFiles, 'src/app-core.js', 'src/app-anat.js', 'src/app-views.js', 'src/app-game.js', 'src/app-tools.js', 'src/app-main.js'];
 const js = standalone => '(function(){\n"use strict";\nconst STANDALONE = ' + standalone + ';\n' + jsFiles.map(f => rd(f)).join('\n') + '\n})();';
 for (const bad of ['</script', '<!--']) if (js(false).includes(bad)) { console.error('程式中不可出現 ' + bad); process.exit(1); }
 try { new vm.Script(js(false), { filename: 'bundle.js' }); new vm.Script(js(true), { filename: 'bundle.js' }); }

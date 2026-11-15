@@ -146,6 +146,7 @@ const IC = {
   steps: '<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M5 11h14M12 11v9.5"/><circle cx="8.5" cy="7.200" r="1.700" fill="currentColor" stroke="none"/>',
   score: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M7.5 9.5v5M15 9.5h2.5V12H15v2.5h2.5"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
   chev: '<path d="M9 5l7 7-7 7"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',

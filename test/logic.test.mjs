@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const ctx = vm.createContext({ console, Math, Date, JSON, Set, Object, Array, String, Number, isNaN });
-for (const f of ['data-ex.js', 'data-plan.js', 'data-learn.js', 'logic.js', 'game.js']) {
+for (const f of ['data-ex.js', 'data-anat.js', 'data-video.js', 'data-plan.js', 'data-learn.js', 'logic.js', 'game.js']) {
   vm.runInContext(fs.readFileSync(new URL('../src/' + f, import.meta.url), 'utf8'), ctx, { filename: f });
 }
 const L = vm.runInContext(`({ EX, SESS, MENUS, PHASES, LOADS, LEARN, TESTS, CATS, validateData, weekIndex, planPos, weekSchedule, fmtRx, toolSpec, sessionMinutes,
@@ -310,6 +310,16 @@ t('game: phase and deload badges', () => {
   assert.ok(g.badges.find(b => b.id === 'b_deload').got);
   st.logs = logs.concat([{ id: 'x', date: '2026-07-28', kind: 'court', min: 60, rpe: 5 }]);   // 減量週多練一次
   assert.ok(!L.gameState(st, '2026-10-06').badges.find(b => b.id === 'b_deload').got);
+});
+
+t('anat & video: every exercise has a principle, valid muscles and a verified video', () => {
+  const A = vm.runInContext('({ EX, ANAT, MUSCLES, VIDEO, validateAnat, validateVideo })', ctx);
+  assert.equal(A.validateAnat().join('|'), ''); assert.equal(A.validateVideo().join('|'), '');
+  for (const id of Object.keys(A.EX)) {
+    const a = A.ANAT[id]; assert.ok(a.why.length >= 30, id);
+    assert.ok(a.p.every(m => !a.s.includes(m)), id + ' 主要與協同重複');
+    const v = A.VIDEO[id]; assert.ok(v, '影片：缺少 ' + id); assert.match(v.v, /^[\w-]{11}$/, id); assert.ok(v.t && v.ch, id);
+  }
 });
 
 console.log('\n' + n + ' 組測試通過');

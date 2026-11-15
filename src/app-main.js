@@ -67,7 +67,7 @@ function openEx(x, rx, note, specJson) {
   body += '<div class="ex-sec"><h4>要點</h4><ul>' + e.cues.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
   if (e.err && e.err.length) body += '<div class="ex-sec err"><h4>常見錯誤</h4><ul>' + e.err.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
   body += '<div class="pills"><span class="pill">' + cat.n + '</span>' + (e.need.length ? e.need.map(k => '<span class="pill">' + NEED[k] + '</span>').join('') : '<span class="pill">不需要器材</span>') + '</div>';
-  if (e.q) body += '<p>' + ytLink(e.q, '在 YouTube 搜尋示範影片') + '</p>';
+  body += anatHTML(x) + videoHTML(x, e);
   let foot = '';
   if (specJson) {
     let sp = null; try { sp = JSON.parse(specJson); } catch (er) { sp = null; }

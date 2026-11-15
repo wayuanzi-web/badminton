@@ -578,3 +578,29 @@ dialog.sheet.full .sheet-h { padding-top: calc(12px + env(safe-area-inset-top, 0
 .ranks li.is-cur { background: var(--mark); color: var(--mark-ink); }
 .ranks li.is-cur b { font-weight: 800; }
 .src-list { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+
+/* ---------- 動作說明：原理、肌肉圖、示範影片 ---------- */
+.anat { display: grid; gap: 8px; margin-top: 14px; }
+.anat p { line-height: 1.65; }
+.anat-fig { margin: 0; display: grid; gap: 6px; padding: 10px; border-radius: var(--r2); background: var(--surface); border: 1px solid var(--line); }
+.anat-fig svg { width: 100%; max-width: 340px; height: auto; margin: 0 auto; display: block; }
+.an-body { fill: var(--surface-2); }
+.an-body .an-limb { fill: none; stroke: var(--surface-2); stroke-linecap: round; }
+.an-m { fill: none; stroke: var(--line-2); stroke-width: .8; }
+.an-s { fill: var(--court); fill-opacity: .45; stroke: var(--court); stroke-width: .8; }
+.an-p { fill: var(--court); stroke: var(--court); stroke-width: .8; }
+.an-cap { font-size: 11px; fill: var(--ink-2); font-weight: 600; }
+.anat-fig figcaption { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; justify-content: center; font-size: 12px; color: var(--ink-2); }
+.an-key { display: inline-flex; align-items: center; gap: 5px; }
+.an-key i { width: 12px; height: 12px; border-radius: 3px; background: var(--court); }
+.an-key i.k-s { opacity: .45; outline: 1px solid var(--court); }
+.anat-list { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.anat-list dt { font-weight: 800; color: var(--court-text); }
+.anat-list dd { margin: 0; color: var(--ink); line-height: 1.5; }
+.vcard { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: var(--r2); background: var(--surface); color: var(--ink); text-decoration: none; }
+.vcard:hover { border-color: var(--line-2); }
+.v-play { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--court); color: var(--on-panel); }
+.v-play .ic { width: 18px; height: 18px; margin-left: 2px; }
+.v-m { display: grid; gap: 3px; min-width: 0; }
+.v-m b { font-size: 14px; line-height: 1.45; }
+.v-m .small { color: var(--ink-2); }

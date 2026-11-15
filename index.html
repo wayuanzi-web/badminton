@@ -610,6 +610,32 @@ dialog.sheet.full .sheet-h { padding-top: calc(12px + env(safe-area-inset-top, 0
 .ranks li.is-cur b { font-weight: 800; }
 .src-list { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
 
+/* ---------- 動作說明：原理、肌肉圖、示範影片 ---------- */
+.anat { display: grid; gap: 8px; margin-top: 14px; }
+.anat p { line-height: 1.65; }
+.anat-fig { margin: 0; display: grid; gap: 6px; padding: 10px; border-radius: var(--r2); background: var(--surface); border: 1px solid var(--line); }
+.anat-fig svg { width: 100%; max-width: 340px; height: auto; margin: 0 auto; display: block; }
+.an-body { fill: var(--surface-2); }
+.an-body .an-limb { fill: none; stroke: var(--surface-2); stroke-linecap: round; }
+.an-m { fill: none; stroke: var(--line-2); stroke-width: .8; }
+.an-s { fill: var(--court); fill-opacity: .45; stroke: var(--court); stroke-width: .8; }
+.an-p { fill: var(--court); stroke: var(--court); stroke-width: .8; }
+.an-cap { font-size: 11px; fill: var(--ink-2); font-weight: 600; }
+.anat-fig figcaption { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; justify-content: center; font-size: 12px; color: var(--ink-2); }
+.an-key { display: inline-flex; align-items: center; gap: 5px; }
+.an-key i { width: 12px; height: 12px; border-radius: 3px; background: var(--court); }
+.an-key i.k-s { opacity: .45; outline: 1px solid var(--court); }
+.anat-list { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.anat-list dt { font-weight: 800; color: var(--court-text); }
+.anat-list dd { margin: 0; color: var(--ink); line-height: 1.5; }
+.vcard { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: var(--r2); background: var(--surface); color: var(--ink); text-decoration: none; }
+.vcard:hover { border-color: var(--line-2); }
+.v-play { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--court); color: var(--on-panel); }
+.v-play .ic { width: 18px; height: 18px; margin-left: 2px; }
+.v-m { display: grid; gap: 3px; min-width: 0; }
+.v-m b { font-size: 14px; line-height: 1.45; }
+.v-m .small { color: var(--ink-2); }
+
 </style>
 </head>
 <body>
@@ -1154,6 +1180,240 @@ const EX = {
     q: '滾筒 放鬆 教學'
   }
 };
+
+/* ============================================================
+   動作原理與肌肉對照
+   MUSCLES：肌肉部位（f 正面圖、b 背面圖），對照 anatSVG 的圖形
+   ANAT[動作代碼] = { why: 原理, p: 主要部位, s: 協同部位, sys: 主要訓練的系統（選用） }
+   ============================================================ */
+const MUSCLES = {
+  delt: { n: '三角肌（肩膀）', v: 'fb' },
+  pec: { n: '胸大肌', v: 'f' },
+  bicep: { n: '肱二頭肌', v: 'f' },
+  forearm: { n: '前臂肌群（握力、腕屈伸、旋前旋後）', v: 'fb' },
+  abs: { n: '腹直肌', v: 'f' },
+  oblique: { n: '腹斜肌（轉體、抗旋轉）', v: 'f' },
+  hipflex: { n: '髖屈肌（髂腰肌）', v: 'f' },
+  quad: { n: '股四頭肌（大腿前側）', v: 'f' },
+  adductor: { n: '內收肌（大腿內側）', v: 'f' },
+  tib: { n: '脛前肌（小腿前側）', v: 'f' },
+  trap: { n: '斜方肌', v: 'b' },
+  upperback: { n: '菱形肌與中下斜方肌（肩胛穩定）', v: 'b' },
+  rotcuff: { n: '旋轉肌袖（棘下肌、小圓肌）', v: 'b' },
+  lat: { n: '背闊肌', v: 'b' },
+  tricep: { n: '肱三頭肌', v: 'b' },
+  erector: { n: '豎脊肌（下背）', v: 'b' },
+  gmed: { n: '臀中肌（骨盆側向穩定）', v: 'b' },
+  glute: { n: '臀大肌', v: 'b' },
+  hamstring: { n: '大腿後側肌群', v: 'b' },
+  calf: { n: '小腿後側（腓腸肌、比目魚肌、阿基里斯腱）', v: 'b' }
+};
+
+const ANAT = {
+  /* ---------- 暖身 ---------- */
+  wu_pulse: { why: '輕度有氧讓心跳和肌肉溫度上升。肌肉溫度每升高一些，收縮速度和延展性都會變好，神經傳導也變快，接下來的動作比較不容易拉傷。', p: ['calf', 'quad'], s: ['glute', 'delt'], sys: '心肺' },
+  wu_joint: { why: '關節慢慢繞圈能讓關節液分布到關節面，降低活動時的摩擦，也讓大腦重新「校正」各關節的位置感。羽球最常扭傷的是腳踝，用得最兇的是手腕和肩膀。', p: ['calf', 'forearm', 'delt'], s: ['hipflex', 'oblique'] },
+  wu_dynamic: { why: '動態伸展是在動作中把肌肉拉到接近比賽需要的長度，比靜態拉筋更能維持接下來的爆發力。研究上，運動前長時間的靜態伸展會暫時降低爆發力，所以運動前用動態伸展。', p: ['hamstring', 'hipflex', 'glute'], s: ['quad', 'adductor', 'oblique'] },
+  wu_activate: { why: '短時間、快頻率的腳步讓神經系統進入「快模式」，讓小腿和臀腿先習慣急停、變向的負荷，上場第一球就跑得動。', p: ['calf', 'quad'], s: ['glute', 'gmed', 'adductor'] },
+  wu_shadow: { why: '空揮把擊球的動作順序（腿、軀幹、肩、手臂、手腕）先跑一遍，由慢到快逐步提高肩膀和手肘的負荷，避免第一拍殺球就拉傷肩膀。', p: ['delt', 'rotcuff', 'forearm'], s: ['oblique', 'tricep', 'pec'] },
+  wu_rally: { why: '在真實的球速下熱拍，讓眼睛、判斷和揮拍同步。力量從五成慢慢加到八成，是給肩膀和手肘的漸進負荷。', p: ['delt', 'forearm', 'calf'], s: ['rotcuff', 'quad', 'oblique'] },
+
+  /* ---------- 步法 ---------- */
+  fw_ready: { why: '分腿跳（啟動步）讓肌肉在落地瞬間先被拉長，接著立刻收縮，像彈簧一樣產生更快的起動（伸展–收縮循環）。時機抓在對手擊球的瞬間，才能往正確方向蹬出。', p: ['calf', 'quad'], s: ['glute', 'adductor', 'gmed'] },
+  fw_six: { why: '把全場移動拆成六個方向反覆練，讓每個方向的步數和節奏變成自動化的動作，比賽時注意力才能放在來球和對手身上。', p: ['quad', 'glute', 'calf'], s: ['adductor', 'hamstring', 'oblique'] },
+  fw_front: { why: '上網的最後一步是大跨步加煞車：前腳的股四頭肌和臀大肌以「離心收縮」吸收衝擊，膝蓋要對準腳尖，再用同一隻腳推蹬回中心。', p: ['quad', 'glute'], s: ['adductor', 'calf', 'hamstring'] },
+  fw_rear: { why: '轉身側對球網後退，最後一步蹬地起跳、空中換腳（剪刀腳），讓轉體的力量傳到手臂，落地時順勢把重心送回中場。', p: ['calf', 'glute', 'quad'], s: ['oblique', 'hamstring', 'gmed'] },
+  fw_side: { why: '接殺時沒有時間多跨步，靠一次側向蹬跨加上壓低重心。內收肌和臀中肌負責側向的推蹬與煞車。', p: ['adductor', 'quad', 'gmed'], s: ['glute', 'calf'] },
+  fw_two: { why: '固定兩點來回能把同一條路線的步伐練到穩定，也開始累積重複衝刺的體能。每趟回中心是比賽的基本習慣。', p: ['quad', 'calf', 'glute'], s: ['adductor', 'hamstring'], sys: '無氧耐力' },
+  fw_random: { why: '隨機指令加入了「看到訊號才決定方向」的反應過程，比固定路線更接近比賽。訓練的是判斷加移動，而不只是腿。', p: ['quad', 'calf', 'glute'], s: ['adductor', 'gmed', 'oblique'], sys: '反應與敏捷' },
+  fw_interval: { why: '羽球是間歇運動：一分球約 5–10 秒高強度、接著短暫休息。用比賽速度做、休交替，同時練到腿部力量的持續和心肺恢復能力。', p: ['quad', 'calf', 'glute'], s: ['adductor', 'hamstring'], sys: '心肺與無氧耐力' },
+  fw_line: { why: '側向折返要反覆煞車再起動，內收肌、臀中肌和小腿承擔大部分負荷，也是羽球側向移動的專項體能。', p: ['adductor', 'gmed', 'calf'], s: ['quad', 'glute'], sys: '無氧耐力' },
+  fw_quick: { why: '小幅度、高頻率的腳步練的是神經肌肉的協調與觸地時間，讓腳步變得「輕」，而不是用力。', p: ['calf', 'tib'], s: ['quad', 'hipflex'], sys: '協調與敏捷' },
+
+  /* ---------- 對練技術 ---------- */
+  tc_clear: { why: '高遠球靠的是由下而上的動力鏈：蹬地、轉體、肩膀外旋到內旋、前臂內旋，最後手指握緊。力量來自全身，手臂只是最後一節鞭梢。', p: ['delt', 'rotcuff', 'forearm'], s: ['oblique', 'pec', 'tricep', 'calf'] },
+  tc_drop_lift: { why: '吊球要「同樣的準備動作、不同的出手速度」，練的是拍面控制；挑球則是上網後用前腳煞車、手腕和前臂把球送到後場。兩者合練就是前後場的轉換。', p: ['forearm', 'quad'], s: ['delt', 'glute', 'calf'] },
+  tc_four: { why: '固定四拍循環讓兩人都練到前後場的移動與四種基本球路的轉換，重複次數多、節奏穩定，適合把動作和步法串起來。', p: ['quad', 'delt', 'forearm'], s: ['calf', 'glute', 'oblique'] },
+  tc_smash_block: { why: '殺球後立刻上網是單打最常見的得分連續動作，訓練的是殺球後的回動速度，以及另一方的擋網控制。', p: ['delt', 'quad', 'calf'], s: ['oblique', 'pec', 'forearm', 'glute'] },
+  tc_drive: { why: '平抽的球速快、揮拍幅度小，主要靠前臂旋轉和手指發力，練反應速度和拍面在身前的位置。', p: ['forearm', 'delt'], s: ['tricep', 'rotcuff', 'oblique'] },
+  tc_net: { why: '網前小球靠手指和手腕的細微控制，力量越小越難。重點是放鬆握拍、用手指調整拍面角度。', p: ['forearm'], s: ['quad', 'delt'] },
+  tc_net_kill: { why: '撲球要在球剛過網的最高點擊球，靠的是快速上網和短促的手指、前臂發力，揮拍幅度小以免觸網。', p: ['forearm', 'quad'], s: ['delt', 'calf'] },
+  tc_serve: { why: '反手短發球是穩定性最高的技術，練的是小肌群的精細控制；接發球則訓練預判與搶高點，雙打前三拍的勝負常從這裡開始。', p: ['forearm'], s: ['delt', 'quad'] },
+  tc_third: { why: '只打發球、接發、第三拍，把雙打最關鍵的前三拍重複放大練習，強化預判和第一時間的搶攻意識。', p: ['forearm', 'quad'], s: ['delt', 'calf'], sys: '反應與判斷' },
+  tc_attack_defend: { why: '固定一攻一守，攻方練連續下壓的力量與落點，守方練重心壓低和拍面控制。高強度，是攻防體能的專項訓練。', p: ['delt', 'quad', 'forearm'], s: ['oblique', 'calf', 'rotcuff'], sys: '無氧耐力' },
+  tc_2v1: { why: '單人方要在比賽速度下連續移動，是羽球最接近比賽、甚至比比賽更累的專項體能訓練；兩人方則練控球和落點。', p: ['quad', 'calf', 'glute'], s: ['delt', 'forearm', 'adductor'], sys: '無氧耐力' },
+  tc_half: { why: '只用直線半場，少了左右移動，能把前後移動和高、吊、放、挑的組合打得更密集，適合練單打的前後轉換。', p: ['quad', 'calf', 'delt'], s: ['glute', 'forearm', 'oblique'] },
+  tc_backhand: { why: '反手後場球靠背對球網時的轉體、前臂旋後和手指瞬間發力，揮拍路線短。它是被動時的補救技術，所以先求打過中場、不出界。', p: ['forearm', 'rotcuff', 'delt'], s: ['tricep', 'upperback', 'oblique'] },
+  tc_rotation: { why: '雙打攻守轉換時，站位要從前後換成左右（或反過來）。練的是兩人的默契與移動路線，誰補哪一塊空位。', p: ['quad', 'calf'], s: ['delt', 'forearm', 'adductor'], sys: '判斷與配合' },
+  tc_drive_game: { why: '限制只能打平球，逼自己在中場用小動作快速出手，強化平抽擋的反應速度和拍面控制。', p: ['forearm', 'delt'], s: ['quad', 'calf', 'rotcuff'], sys: '反應速度' },
+
+  /* ---------- 多球 ---------- */
+  mb_net: { why: '多球讓同一個動作在短時間內重複 16–20 次，動作和步法的學習效率比一般對練高很多，也同時練到上網的腿力。', p: ['quad', 'forearm'], s: ['glute', 'calf', 'adductor'] },
+  mb_rear: { why: '連續的後場來球讓肩膀在疲勞下仍要維持正確的揮拍順序，訓練後場技術的穩定和後退步法。', p: ['delt', 'rotcuff', 'calf'], s: ['oblique', 'forearm', 'quad', 'glute'] },
+  mb_four: { why: '隨機四角加上接近比賽的速度，是技術與體能的綜合訓練，一組相當於幾分最激烈的來回。', p: ['quad', 'calf', 'delt'], s: ['glute', 'adductor', 'forearm'], sys: '無氧耐力' },
+  mb_smash_net: { why: '殺球後馬上上網撲球，訓練從後場到網前的最快轉換，同時練殺球的力量和撲球的細膩。', p: ['delt', 'quad', 'calf'], s: ['oblique', 'forearm', 'glute'], sys: '無氧耐力' },
+  mb_defense: { why: '接殺時球速快、反應時間短，重點是重心壓低、拍子在身前、靠前臂和手指的短促發力把球擋好或挑深。', p: ['forearm', 'quad'], s: ['delt', 'adductor', 'calf'], sys: '反應速度' },
+
+  /* ---------- 單人球感 ---------- */
+  so_grip: { why: '正反手切換靠手指轉動握把，速度越快，來不及時就越不會用錯握法。這是平抽、接殺能不能跟上的基礎。', p: ['forearm'], s: [] },
+  so_juggle: { why: '顛球訓練手眼協調與拍面感覺，用最小的力量控制球的高度，是放網、搓球的基本功。', p: ['forearm'], s: ['delt'], sys: '協調' },
+  so_wall: { why: '牆面回球比人快又穩定，能在短時間內做大量的平抽重複，訓練手指發力和連續反應。', p: ['forearm', 'delt'], s: ['tricep', 'rotcuff'], sys: '反應速度' },
+  so_wall_def: { why: '近距離快擋模擬雙打接殺和封網，拍子保持在身前，用最短的動作反應。', p: ['forearm'], s: ['delt', 'tricep'], sys: '反應速度' },
+  so_swing: { why: '揮拍的力量順序是腿、髖、軀幹、肩、上臂、前臂。反覆空揮把順序練成習慣，前臂內旋是殺球和高遠球最後加速的來源。', p: ['delt', 'oblique', 'forearm'], s: ['rotcuff', 'pec', 'tricep', 'calf'] },
+  so_serve: { why: '發球是唯一完全由自己控制的一拍。反覆練同一個動作並設定目標區，把穩定性練起來。', p: ['forearm'], s: ['delt'] },
+  so_finger: { why: '手指在擊球瞬間握緊，能讓拍頭在很短的距離內加速，小動作也能打出速度，是網前、平抽、接殺的關鍵。', p: ['forearm'], s: [] },
+  so_net_self: { why: '自己拋球能把注意力完全放在拍面角度和擊球點，觀察球過網的高度與翻滾，練出網前手感。', p: ['forearm'], s: ['quad'] },
+
+  /* ---------- 體能 ---------- */
+  cd_rope: { why: '跳繩是低幅度、高頻率的彈跳，強化小腿和阿基里斯腱的彈性與耐力，也練腳踝的節奏感，是羽球腳步的基礎體能。', p: ['calf', 'tib'], s: ['quad', 'forearm', 'delt'], sys: '心肺' },
+  cd_easy: { why: '低強度有氧建立「有氧底」：心臟每跳送出的血量增加、肌肉微血管變多，分與分之間恢復得更快。也是恢復日加速恢復的方式。', p: ['quad', 'calf'], s: ['glute', 'hamstring'], sys: '心肺（有氧）' },
+  cd_shuttle: { why: '6 公尺折返包含加速、煞車、轉向，接近羽球的移動距離。全力衝刺練的是無氧能力與重複衝刺後的恢復。', p: ['quad', 'glute', 'calf'], s: ['hamstring', 'adductor'], sys: '無氧' },
+  cd_run_int: { why: '快、慢交替讓心跳反覆拉高再回落，同時改善最大攝氧量與恢復速度，比同樣時間的慢跑更貼近羽球的間歇特性。', p: ['quad', 'calf', 'hamstring'], s: ['glute', 'hipflex'], sys: '心肺（間歇）' },
+
+  /* ---------- 肌力 ---------- */
+  st_squat: { why: '深蹲是下肢最基本的「推」：髖和膝同時伸展。強化臀腿就是強化每一次蹬地和煞車，也讓膝蓋周圍更能承受羽球大量的跨步。', p: ['quad', 'glute'], s: ['adductor', 'hamstring', 'erector', 'abs'] },
+  st_lunge: { why: '向不同方向跨步下蹲，直接對應上網和接殺的蹬跨。前腳下蹲時是離心收縮在煞車，是預防膝蓋受傷最重要的能力之一。', p: ['quad', 'glute', 'adductor'], s: ['gmed', 'hamstring', 'calf'] },
+  st_split: { why: '單腳承擔大部分重量，比雙腳深蹲更能改善左右腳不平衡，也加強單腳時骨盆的穩定，接近羽球單腳跨步的情境。', p: ['quad', 'glute'], s: ['gmed', 'adductor', 'hamstring'] },
+  st_rdl: { why: '髖關節鉸鏈（往後折）主要練臀大肌和大腿後側；單腳做還要靠臀中肌和腳踝維持平衡。大腿後側夠強，衝刺和急停時比較不容易拉傷。', p: ['hamstring', 'glute'], s: ['gmed', 'erector', 'calf'] },
+  st_calf: { why: '小腿和阿基里斯腱承受每一次彈跳和蹬地。慢慢放下（離心）的提踵能強化肌腱，膝蓋伸直練腓腸肌、微彎練比目魚肌。', p: ['calf'], s: ['tib'] },
+  st_bridge: { why: '臀橋在不壓迫下背的情況下直接練臀大肌伸髖。臀部無力時，下背和大腿後側會代償，容易痠痛。', p: ['glute'], s: ['hamstring', 'erector', 'abs'] },
+  st_plank: { why: '棒式練的是軀幹「不動」的能力（抗伸展）。羽球的力量從腿傳到手，中間要靠穩定的軀幹，不然力量會漏掉。', p: ['abs'], s: ['oblique', 'delt', 'glute'] },
+  st_side_plank: { why: '側棒式練側腹和臀中肌，對抗身體側彎，讓單腳落地和側向移動時骨盆不歪。', p: ['oblique', 'gmed'], s: ['abs', 'delt'] },
+  st_deadbug: { why: '手腳在動，軀幹保持不動、下背貼地，練的是核心在四肢活動時的控制，對下背最友善。', p: ['abs'], s: ['oblique', 'hipflex'] },
+  st_birddog: { why: '對側手腳伸直時，軀幹要抵抗旋轉和下沉，同時練到下背和臀部，是物理治療常用的下背穩定動作。', p: ['erector', 'glute'], s: ['abs', 'delt', 'upperback'] },
+  st_antirot: { why: '抗旋轉（Pallof press）練的是「不被拉轉」：揮拍時上下半身要能傳遞轉體的力量，而不是在腰部亂扭。', p: ['oblique', 'abs'], s: ['delt', 'glute'] },
+  st_pushup: { why: '伏地挺身練胸、肩前側和上臂後側的推力，同時要求軀幹維持一直線，是上肢與核心一起練的基本動作。', p: ['pec', 'tricep'], s: ['delt', 'abs'] },
+  st_row: { why: '羽球大量的揮拍會讓胸和肩前側變緊、上背變弱，肩膀容易往前圓。划船練肩胛往後收的肌群，讓肩膀前後平衡。', p: ['upperback', 'lat'], s: ['bicep', 'delt', 'forearm'] },
+  st_er: { why: '殺球和高遠球時，肩膀內旋的速度非常快，揮完拍要靠後側的旋轉肌袖煞車。肩外旋就是在練這組「煞車肌」，是預防肩膀受傷的重點。', p: ['rotcuff'], s: ['delt', 'upperback'] },
+  st_ytw: { why: 'Y、T、W 三個角度分別練下、中斜方肌和菱形肌，讓肩胛在手臂舉高時穩定地往下往後，揮拍時肩膀比較不會夾擠。', p: ['upperback', 'trap'], s: ['rotcuff', 'delt'] },
+  st_forearm: { why: '握拍、發力、網前控制都靠前臂。腕屈、腕伸和旋轉都練到，能減少手肘外側（網球肘）和手腕的過度使用傷害。', p: ['forearm'], s: [] },
+  st_ankle: { why: '單腳平衡練的是腳踝的本體感覺（大腦知道腳踝角度的能力）。研究顯示平衡訓練能降低腳踝再次扭傷的機會。', p: ['calf', 'tib', 'gmed'], s: ['glute', 'quad'], sys: '平衡與本體感覺' },
+
+  /* ---------- 爆發與落地 ---------- */
+  pw_pogo: { why: '膝蓋幾乎不彎、只用腳踝快速彈跳，練的是小腿和阿基里斯腱像彈簧一樣儲存、釋放能量，觸地越短越好。', p: ['calf'], s: ['tib', 'quad'] },
+  pw_squat_jump: { why: '蹲跳把深蹲的力量轉成速度，練垂直的爆發力；落地要輕、膝蓋對準腳尖，學會安全吸收衝擊。', p: ['quad', 'glute', 'calf'], s: ['hamstring', 'abs'] },
+  pw_split_jump: { why: '弓箭步跳在空中換腳、落地煞車，接近上網跨步和後場剪刀腳的發力與落地。', p: ['quad', 'glute'], s: ['calf', 'hipflex', 'adductor'] },
+  pw_skater: { why: '單腳側向起跳、另一腳落地停穩，練側向的爆發與煞車，正是羽球左右移動的需求。', p: ['gmed', 'glute', 'quad'], s: ['adductor', 'calf'] },
+  pw_hop_stick: { why: '單腳落地後停穩，練的是落地時膝蓋不內夾、骨盆不歪的控制能力。膝蓋內夾的落地是前十字韌帶受傷的常見機制。', p: ['quad', 'gmed', 'glute'], s: ['calf', 'hamstring'], sys: '落地控制' },
+
+  /* ---------- 比賽情境 ---------- */
+  gm_match: { why: '比賽把技術、步法、體能和判斷全部放在一起，在有壓力的情況下才看得出哪裡還不穩。', p: ['quad', 'calf', 'delt'], s: ['glute', 'forearm', 'oblique'], sys: '全身綜合' },
+  gm_cond: { why: '加上限制條件，逼自己反覆用出想練的打法或處理關鍵分，比自由比賽更有針對性。', p: ['quad', 'calf', 'delt'], s: ['glute', 'forearm'], sys: '戰術與判斷' },
+  gm_review: { why: '刻意練習的核心是回饋：知道自己哪裡失分，下一次練習才有方向。寫下來能讓記憶更清楚。', p: [], s: [], sys: '思考與回饋（沒有特定肌肉）' },
+  gm_weak: { why: '把練習集中在最常失分的球路，進步最快。弱點補強要有足夠的重複次數。', p: ['forearm', 'quad'], s: ['delt', 'calf'], sys: '依弱點而定' },
+  gm_visual: { why: '意象訓練（在腦中演練動作）會活化和實際動作相似的大腦區域，研究顯示搭配實際練習能幫助技術學習和穩定比賽情緒。', p: [], s: [], sys: '大腦與神經（沒有特定肌肉）' },
+
+  /* ---------- 收操伸展 ---------- */
+  cl_walk: { why: '激烈運動後突然停下來，血液容易積在腿部而頭暈。慢走讓心跳和呼吸逐步回到平靜。', p: ['calf', 'quad'], s: [], sys: '心肺回復' },
+  cl_lower: { why: '運動後的靜態伸展讓緊繃的肌肉回到放鬆的長度，維持關節活動度。膝蓋伸直伸展腓腸肌，微彎伸展比目魚肌。', p: ['calf', 'hamstring', 'quad'], s: ['hipflex', 'glute', 'adductor'] },
+  cl_upper: { why: '羽球大量使用胸、肩前側和前臂，伸展這些部位能減少肩膀往前圓的姿勢，也照顧容易過度使用的前臂。', p: ['pec', 'forearm', 'rotcuff'], s: ['delt', 'tricep', 'lat'] },
+  cl_back: { why: '貓牛式和扭轉讓脊椎一節一節活動，放鬆打球時大量轉體和前彎的下背。', p: ['erector'], s: ['oblique', 'lat', 'glute'] },
+  cl_roll: { why: '滾筒按壓能暫時降低肌肉緊繃感、增加活動度，常用來放鬆小腿和大腿。它不會「打散乳酸」，但能讓身體感覺比較放鬆。', p: ['calf', 'quad', 'glute'], s: ['hamstring', 'upperback'] }
+};
+
+/* 建置時檢查：每個動作都要有原理和肌肉資料，部位代碼要存在 */
+function validateAnat() {
+  const errs = [];
+  Object.keys(EX).forEach(id => {
+    const a = ANAT[id];
+    if (!a || !a.why) { errs.push('原理：缺少 ' + id); return; }
+    a.p.concat(a.s).forEach(m => { if (!MUSCLES[m]) errs.push('原理：' + id + ' 的部位代碼 ' + m + ' 不存在'); });
+    if (!a.p.length && !a.sys) errs.push('原理：' + id + ' 沒有主要部位也沒有說明訓練系統');
+  });
+  Object.keys(ANAT).forEach(id => { if (!EX[id]) errs.push('原理：' + id + ' 不在動作庫'); });
+  return errs;
+}
+
+/* 示範影片：每個動作一部，以 YouTube oEmbed 確認影片存在、標題與頻道相符（2026-11-15）
+   v 影片代碼、t 標題、ch 頻道、dur 長度、lang 語言（zh-TW／zh-CN／en）、note 補充說明 */
+const VIDEO = {
+  wu_pulse: { v: 'ybIE7YNjswQ', t: '20.開合跳｜徐棟英', ch: '超慢跑核心訓練 徐棟英教官', dur: '0:41', lang: 'zh-TW' },
+  wu_joint: { v: '9Wqv0i1i4cs', t: '打羽球 必做熱身！預防運動傷害 穩定踝 膝 髖關節 這樣動！ 健康2.0 精華 花世源醫師 陳少偉教練 @tvbshealth20', ch: '健康2.0', dur: '4:38', lang: 'zh-TW' },
+  wu_dynamic: { v: 'x_wK49jekgU', t: '10分鐘羽毛球熱身伸展運動 -脊醫王鳳恩 - 1(中/Eng Sub) Dr Matty Wong - 10 mins badminton warm up stretching exercises', ch: '脊醫王鳳恩 Dr. Matty Wong - Doctor of Chiropractic', dur: '7:28', lang: 'zh-TW' },
+  wu_activate: { v: 'DXbWHHKbxzA', t: '暖身很重要！避免羽球運動傷害的步法，一定要練原地專項｜羽球專項步法教學｜羽球步法訓練，打羽球跑到位｜羽毛球步伐', ch: 'Bonny 波力羽球', dur: '2:24', lang: 'zh-TW' },
+  wu_shadow: { v: 'j9nNSi2NpbA', t: '黃嘉欣羽球小教室_如何在家練習長球內旋揮拍_20191009', ch: '黃嘉欣羽球小教室', dur: '2:16', lang: 'zh-TW', note: '影片示範正手高遠球的空揮；其他球路照同樣的發力順序。' },
+  wu_rally: { v: 'FwD_ihA6a0w', t: '羽球人 | 職業選手教你如何在場上熱身', ch: '羽球人', dur: '6:50', lang: 'zh-TW' },
+  fw_ready: { v: 'kBCmzpPArkM', t: '看到球落下，腳跨不出去嗎， 你的重心放對了嗎？看了這篇你就明白｜啟動步｜安東羽球教室', ch: '安東羽球Badmintonandon', dur: '4:01', lang: 'zh-TW' },
+  fw_six: { v: 'YAbmw4ssKKE', t: '初學必看, 六點步伐快速上手｜Badminton Footwork｜安東羽球教室', ch: '安東羽球Badmintonandon', dur: '2:58', lang: 'zh-TW' },
+  fw_front: { v: 'YVMoisPEii4', t: '【羽球教學】蹬跨步——上網步法', ch: '楊雷鬼', dur: '5:00', lang: 'zh-TW' },
+  fw_rear: { v: 'Znpv-B-WnyU', t: '秒懂史上最快速的後退步法大解析｜安東羽球教室｜', ch: '安東羽球Badmintonandon', dur: '3:05', lang: 'zh-TW' },
+  fw_side: { v: 'R1Z9ASD310A', t: '羽球殺球，接挑起來的技巧！｜教練講解接羽球殺球的關鍵步驟｜羽毛球殺球這樣接', ch: 'Bonny 波力羽球', dur: '2:17', lang: 'zh-TW', note: '影片從接殺技術講起，留意教練跨步和壓低重心的方式。' },
+  fw_two: { v: 'o81rR6M0jUI', t: '羽球教學必看-全場綜合步法', ch: '羽球密碼', dur: '2:47', lang: 'zh-TW' },
+  fw_random: { v: 'S6BumK0A5TM', t: 'SHADOW Footwork 6 Corner Footwork Badminton Footwork Training', ch: 'Dk badminton', dur: '1:33', lang: 'en' },
+  fw_interval: { v: 'T2js8CbmVxg', t: 'Badminton Footwork - Interval Training', ch: 'Play Faster Than Your Shadow', dur: '6:06', lang: 'en' },
+  fw_line: { v: 'ocJ-Cia00Ko', t: '橫向熱身動作/橫向移動：側併步', ch: '山姆伯伯工作坊', dur: '0:42', lang: 'zh-TW', note: '影片示範側併步；本練習是在兩條邊線間做同樣的移動。' },
+  fw_quick: { v: '6AHY2UObZkY', t: '可愛的日本妹子示範羽球敏捷梯訓練 feat.奏由華｜Ladder Agility Training for badminton', ch: '羽球人', dur: '3:14', lang: 'zh-TW', note: '影片用敏捷梯；沒有梯子時，用地上的線代替。' },
+  tc_clear: { v: 'sB-TVcnpmxU', t: '高遠球打不遠？教你怎麼發力｜Badminton Double Defend｜安東羽球教室', ch: '安東羽球Badmintonandon', dur: '3:19', lang: 'zh-TW' },
+  tc_drop_lift: { v: 'dv_ennoaT0w', t: '出類拔萃羽毛球會 吊球及挑球實戰練習', ch: 'ExcellenceBadminton', dur: '0:35', lang: 'zh-TW' },
+  tc_four: { v: 'fpuVrDis7Zc', t: 'Master Badminton Doubles Rotation: 4-Shot Drill from Rear Court to Net', ch: 'Basicfeather', dur: '3:46', lang: 'en' },
+  tc_smash_block: { v: 'Xl3nIDwrqlk', t: '殺球上網', ch: '羽球密碼', dur: '4:13', lang: 'zh-TW' },
+  tc_drive: { v: '3A22dThPUT0', t: '不可錯過的「平球」細節解析大公開 ｜ Forehand & Backhand Drive｜安東羽球教室｜', ch: '安東羽球Badmintonandon', dur: '4:54', lang: 'zh-TW' },
+  tc_net: { v: 'b0EZKzLen7U', t: '羽球網前放小球，注意拍面高度與角度，降低掛網與被攻擊的風險｜羽球教學：手伸出去、腳跨，放網前小球的時機拿捏｜羽毛球小球技巧', ch: 'Bonny 波力羽球', dur: '2:56', lang: 'zh-TW' },
+  tc_net_kill: { v: 'upbhAjSoCiU', t: '羽毛球教学训练 网前打后场技术 推球和扑球 EP26', ch: '华人开放式课程MOOC', dur: '7:53', lang: 'zh-CN' },
+  tc_serve: { v: 'yH8d_crSRSg', t: '接發球搶主動的關鍵步驟｜安東羽球教室｜', ch: '安東羽球Badmintonandon', dur: '3:24', lang: 'zh-TW', note: '影片示範接發球；反手短發球可看「反手發球練習」的影片。' },
+  tc_third: { v: 'jByJHivdSXQ', t: '雙打關鍵第三拍｜Third shots｜讓你輕鬆省去後面多拍｜葉師傅教羽球', ch: '葉師傅教羽球', dur: '6:37', lang: 'zh-TW' },
+  tc_attack_defend: { v: 'cos9sfNFtGk', t: '刘辉羽毛球：教你双打防守训练丨 两项【刘辉羽毛球】', ch: '刘辉羽毛球', dur: '1:20', lang: 'zh-CN' },
+  tc_2v1: { v: 'INcLU8H7_jM', t: '半場一打二 全場輪轉練習｜【楊教練的羽球課Badminton Training】', ch: '楊濟鍇Kyle Yang', dur: '3:45', lang: 'zh-TW' },
+  tc_half: { v: 'd4QJMcvGfAc', t: 'Badminton Training On A Half-Court - 8 Exercises To Improve Your Game!', ch: 'Badminton Insight', dur: '6:53', lang: 'en' },
+  tc_backhand: { v: 'bXNjafTsN94', t: '教你打反手高遠球，反手長球重點解析｜Backhand Clear｜安東羽球教室', ch: '安東羽球Badmintonandon', dur: '6:33', lang: 'zh-TW' },
+  tc_rotation: { v: 'Q10iHOfXzik', t: '基本輪轉概念，讓你不再當雷隊友──進攻/防守站位｜Doubles Rotation System｜安東羽球教室｜', ch: '安東羽球Badmintonandon', dur: '3:50', lang: 'zh-TW' },
+  tc_drive_game: { v: 'dr4qizko5Bs', t: '国羽小课堂 | 郑思维 | 双打平抽档训练方法', ch: 'Wills Badminton Channel', dur: '2:16', lang: 'zh-CN' },
+  mb_net: { v: 'qDyZWfnNnr8', t: '羽球教學-如何為自己製造更多攻擊機會？網前小球啟動訓練！黃美菁 教練 Badminton Training / Net shot footwork (CC subtitle)', ch: 'JNICE SPORTS', dur: '2:38', lang: 'zh-TW' },
+  mb_rear: { v: '43N_5hnY3Zk', t: 'Singles Multifeed Training - Improve Your Speed, Consistency and Endurance!', ch: 'Badminton Insight', dur: '6:35', lang: 'en' },
+  mb_four: { v: 'pzYdMWyPsUE', t: '国羽小课堂| 陈雨菲 | 单打四方球练习', ch: 'Wills Badminton Channel', dur: '1:01', lang: 'zh-CN' },
+  mb_smash_net: { v: 'BPjqmlm2v08', t: '殺上網多球練習', ch: '小圆子羽毛球', dur: '5:04', lang: 'zh-TW' },
+  mb_defense: { v: 'nt9AXwZr7eo', t: 'Multi shuttle defensive badminton training', ch: 'Badminton Motivation', dur: '3:01', lang: 'en' },
+  so_grip: { v: 'cWU5ZLa8U60', t: '黃嘉欣羽球小教室_正反拍轉換練習_20200207', ch: '黃嘉欣羽球小教室', dur: '4:07', lang: 'zh-TW' },
+  so_juggle: { v: 'aInxg2Sy8dI', t: '如何正确颠球？做好这3点让你的颠球更稳定！', ch: '包建邦羽毛球', dur: '2:20', lang: 'zh-CN' },
+  so_wall: { v: 'zSmd-fVIIng', t: '如何正确抽墙？最后一点很重要！', ch: '包建邦羽毛球', dur: '1:49', lang: 'zh-CN' },
+  so_wall_def: { v: 'SApj9KIbaac', t: '双打中的防守接杀（3）对墙练习（3）/ Smash Defence in Doubles (3) Wall hitting practice-3', ch: 'Coachingbadminton-Chinese', dur: '1:14', lang: 'zh-CN' },
+  so_swing: { v: 'sB-TVcnpmxU', t: '高遠球打不遠？教你怎麼發力｜Badminton Double Defend｜安東羽球教室', ch: '安東羽球Badmintonandon', dur: '3:19', lang: 'zh-TW' },
+  so_serve: { v: 'kReSKb_4WB0', t: '掌握反拍發球該有的優勢和精準控制｜Backhand Short Service｜安東羽球教室｜', ch: '安東羽球Badmintonandon', dur: '2:24', lang: 'zh-TW' },
+  so_finger: { v: 'RZOBsrPoDfE', t: '【破解羽球迷思】殺球手指打開？？ 這是手指發力嗎？｜Open Fingers Power Smash?｜安東羽球 ｜English Subtitles', ch: '安東羽球Badmintonandon', dur: '8:52', lang: 'zh-TW' },
+  so_net_self: { v: 'ru4WgTUzjxM', t: '雙打放網：收搓展搓缺一不可！如何判斷來球決定用哪一招？教你用一隻球拍居家練出手感！//J&J BADMINTON', ch: 'Jeff\'s羽球杰作', dur: '6:33', lang: 'zh-TW' },
+  cd_rope: { v: 'Ncwq0xnQlrE', t: '七個步驟帶你解鎖雙迴旋｜Double unders｜葉師傅教羽球(請開啟CC字幕)', ch: '葉師傅教羽球', dur: '3:05', lang: 'zh-TW' },
+  cd_easy: { v: 'y7feLhzG49Y', t: '【跑步小學堂】慢才能快 你會跑嗎 — 輕鬆跑 |Sport Elite 運動王者', ch: 'Sport Elite運動王者', dur: '3:45', lang: 'zh-TW' },
+  cd_shuttle: { v: 'mbILIi-LMqU', t: '折返跑', ch: '魄瘋體能訓練中心 hyperformance s&c center', dur: '0:32', lang: 'zh-TW' },
+  cd_run_int: { v: 'I_O2zIN2x-k', t: '【你也懼怕間歇訓練？】跑步新手也能輕鬆上手', ch: '跟上魁哥', dur: '10:05', lang: 'zh-TW' },
+  st_squat: { v: 'TirI54UTHNU', t: '深蹲正確姿勢！小心蹲錯傷膝蓋【 堡你平安 】 侯鐘堡醫師 @tvbshealth20', ch: '健康2.0', dur: '0:57', lang: 'zh-TW' },
+  st_lunge: { v: 'EUQ9aJLLrSw', t: 'Multi Directional Lunges', ch: 'Tom Morrison', dur: '1:46', lang: 'en' },
+  st_split: { v: 'HPfpii2-4ro', t: '練臀必看的保加利亞分腿蹲大解析：三種常見錯誤姿勢？啞鈴該拿哪一邊？', ch: '女力健身 Nuli App', dur: '5:25', lang: 'zh-TW' },
+  st_rdl: { v: 'Gj1nNdNdBaw', t: '單腳硬舉訓練教學｜正確姿勢與常見錯誤避免！提升你的平衡與穩定性 打造渾圓翹臀技巧！', ch: '女力健身 Nuli App', dur: '5:08', lang: 'zh-TW' },
+  st_calf: { v: 'CtyIVeJH6lI', t: 'You\'re Doing Calf Raises WRONG | The Correct Way Taught By Physical Therapist', ch: 'Rehab and Revive', dur: '1:48', lang: 'en' },
+  st_bridge: { v: 'uz1EYLh37A0', t: '臀肌訓練 bridge exercise：利用橋式搶救核心及臀肌。', ch: '全人物理治療所', dur: '2:05', lang: 'zh-TW' },
+  st_plank: { v: 'O1u-ohna3E4', t: '物理治療~最不容易受傷的棒式訓練', ch: '詹珞瑤', dur: '0:51', lang: 'zh-TW' },
+  st_side_plank: { v: 'S1VXVCzFxIU', t: '側棒式side plank 訓練身體側面核心，從腳部外側、身體側腹部然後一路延伸到脖子側面皆可訓練到。若深蹲扛槓時，容易高低肩或單腳站無法穩定身體，皆可訓練側棒式來幫助強化側方核心！', ch: '全人物理治療所', dur: '3:01', lang: 'zh-TW' },
+  st_deadbug: { v: 'xZhwA0lgIs8', t: '核心訓練：「死蟲式deadbug」', ch: '全人物理治療所', dur: '3:51', lang: 'zh-TW' },
+  st_birddog: { v: 'ibqST4wJXo4', t: '超核心HYPERCORE | 下背救星－鳥狗式', ch: '林勁瑋 x 大腦優先教練學院', dur: '4:55', lang: 'zh-TW' },
+  st_antirot: { v: 'yFg8X7pmA9E', t: '「肌力動作」站姿核心抗旋轉 (Pallof Press)', ch: '【本是運動x耐力網】', dur: '0:53', lang: 'zh-TW' },
+  st_pushup: { v: '0zfZOUYjqek', t: '『如何學會正確伏地挺身』內附-細節與進退階動作', ch: 'Frank法蘭克👍', dur: '3:34', lang: 'zh-TW' },
+  st_row: { v: 'h9iN9flDpI0', t: '彎腰駝背問題在肌肉沒力！強化背肌「彈力帶划船」學起來【早安健康】', ch: '早安健康', dur: '2:20', lang: 'zh-TW' },
+  st_er: { v: 'cGH4XNxL0A4', t: '【長安醫院居家復健輕鬆做】肩關節 (3-7) 肩外轉彈力帶運動', ch: '長安醫院', dur: '1:39', lang: 'zh-TW' },
+  st_ytw: { v: 'u4et0MH634E', t: '【YTWL-背部訓練】有效改善圓肩駝背', ch: '小潘老師', dur: '6:38', lang: 'zh-TW' },
+  st_forearm: { v: 'mXCLI28nscc', t: '【Fun Sport趣運動】啞鈴訓練 -前臂手腕伸展(wrist Extension)及彎舉(wrist Flexion) - 李笠豪教練', ch: 'FunSport 趣運動【魯克海斯有限公司】', dur: '0:44', lang: 'zh-TW' },
+  st_ankle: { v: 'UIzZgczTR9E', t: '腳踝扭傷怎麼辦？平衡訓練幫你改善！｜詹珞瑤 物理治療師 Veronica Rehab', ch: '詹珞瑤', dur: '3:15', lang: 'zh-TW' },
+  pw_pogo: { v: 'Itml5WC-PJI', t: '雙腳踝跳，pogo jump', ch: '阿茗 肌力與體能教練 呼吸治療師', dur: '3:13', lang: 'zh-TW' },
+  pw_squat_jump: { v: 'A-cFYWvaHr0', t: 'How To Do A Squat Jump | The Right Way | Well+Good', ch: 'Well+Good', dur: '3:03', lang: 'en' },
+  pw_split_jump: { v: 'ZiupDCper-M', t: 'Alternating Split Squat Jump', ch: 'Champion Physical Therapy and Performance', dur: '0:18', lang: 'en' },
+  pw_skater: { v: '3iFXfrBQlks', t: '【康健來了】滑冰左右跳 訓練核心肌群', ch: '康健雜誌', dur: '1:30', lang: 'zh-TW' },
+  pw_hop_stick: { v: '3_QHB0B9JyU', t: 'Single leg hop and stick', ch: 'GameTime Sports & Training', dur: '0:23', lang: 'en' },
+  gm_match: { v: 'cpOmXeqeIBk', t: '新手必看!羽球發球動作及單打規則', ch: '樂體育 Luv sports Media', dur: '2:55', lang: 'zh-TW' },
+  gm_cond: { v: 'BJZ_jZY8qFI', t: '限制區是什麼 ? 限制區可以練到什麼？職業選手為何這麼愛打 ? | what is box games?', ch: '不求人羽球', dur: '12:02', lang: 'zh-TW' },
+  gm_review: { v: 'yfs6ScaazjI', t: 'How To Analyse Your Badminton Matches', ch: 'Badminton Insight', dur: '5:02', lang: 'en' },
+  gm_weak: { v: 'msLbOiLoGWw', t: 'Doubles Multifeed Exercises - Training to Quickly Improve Your Badminton!', ch: 'Badminton Insight', dur: '4:55', lang: 'en', note: '影片是多球練習的例子（英文），可依自己的弱點換球路。' },
+  gm_visual: { v: 'RWNTmPlwjw8', t: '香港運動心理學會影片 - 表像訓練', ch: 'TSWONGSIR', dur: '12:52', lang: 'zh-TW' },
+  cl_walk: { v: '0PkwQQJAY3c', t: '醫護行者 Health In Action｜熱身與緩和 Warm-up and Cool-down｜伸展運動 Stretching｜放鬆 Relaxation', ch: 'Health In Action', dur: '5:52', lang: 'zh-TW', note: '影片是一般的熱身與緩和運動示範。' },
+  cl_lower: { v: 'Or6SQeHfOVM', t: '下半身拉筋運動，小腿、大腿、臀部躺著拉筋｜羅伯特物理治療', ch: '羅伯特物理治療', dur: '1:46', lang: 'zh-TW' },
+  cl_upper: { v: 'bHBJkoteM8E', t: '預防網球肘、高爾夫球肘：5個手臂保養伸展運動｜啾c物理治療師', ch: '啾c物理治療師', dur: '10:25', lang: 'zh-TW', note: '影片以前臂和手腕伸展為主；胸、肩的伸展照本頁說明。' },
+  cl_back: { v: 'nGFe2xwdTB8', t: '瑜珈--貓牛式cat cow yoga pose , 紓緩痠痛，延展背部脊椎，讓脊椎柔軟不僵硬，喚醒深層核心肌群。', ch: '全人物理治療所', dur: '4:01', lang: 'zh-TW' },
+  cl_roll: { v: 'T5FaG9OZnCk', t: '8分鐘滾筒放鬆下肢筋膜沾黏，物理治療師完整示範｜啾c物理治療師', ch: '啾c物理治療師', dur: '8:54', lang: 'zh-TW' },
+};
+function validateVideo() {
+  const errs = [];
+  Object.keys(EX).forEach(id => { const v = VIDEO[id]; if (!v) errs.push('影片：缺少 ' + id); else if (!/^[\w-]{11}$/.test(v.v)) errs.push('影片：' + id + ' 代碼格式錯誤'); });
+  Object.keys(VIDEO).forEach(id => { if (!EX[id]) errs.push('影片：' + id + ' 不在動作庫'); });
+  return errs;
+}
 
 /* ============================================================
    課表、12 週計畫、日常菜單、檢測
@@ -3239,6 +3499,7 @@ const IC = {
   steps: '<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M5 11h14M12 11v9.5"/><circle cx="8.5" cy="7.200" r="1.700" fill="currentColor" stroke="none"/>',
   score: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M7.5 9.5v5M15 9.5h2.5V12H15v2.5h2.5"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
   chev: '<path d="M9 5l7 7-7 7"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
@@ -3445,6 +3706,107 @@ function wakeReq() {
 }
 function wakeOn() { wakeWant = true; wakeReq(); }
 function wakeOff() { wakeWant = false; wakeSeq++; try { if (wake) wake.release(); } catch (e) { /* 忽略 */ } wake = null; }
+
+/* ============================================================
+   肌肉位置對照圖：正面、背面兩個人形，主要部位深色、協同部位淺色
+   形狀是示意，位置對照用；不是精確的解剖圖。
+   ============================================================ */
+
+/* 左半邊的形狀（x 為負），畫的時候會鏡射到右半邊；mid: true 的畫在中線、不鏡射 */
+const ANAT_SHAPES = {
+  f: {
+    delt: [['e', -31, 44, 8, 9.5]],
+    pec: [['e', -14, 53, 13, 9]],
+    bicep: [['e', -36, 70, 5.2, 12.5]],
+    forearm: [['e', -41, 106, 4.8, 16]],
+    abs: [['r', -8.5, 64, 17, 40, 5, 1]],
+    oblique: [['e', -17.5, 86, 5, 13]],
+    hipflex: [['e', -10.5, 117, 5, 7]],
+    quad: [['e', -14.5, 150, 8.5, 25]],
+    adductor: [['e', -5, 140, 3.6, 15]],
+    tib: [['e', -14, 201, 3.8, 17]]
+  },
+  b: {
+    trap: [['p', '0,27 -23,40 -6,52 0,66 6,52 23,40', 1]],
+    upperback: [['e', -11, 55, 6.5, 9]],
+    rotcuff: [['e', -21.5, 51, 6, 6]],
+    delt: [['e', -31, 44, 8, 9.5]],
+    lat: [['e', -19, 77, 7.5, 16]],
+    tricep: [['e', -36, 70, 5.2, 12.5]],
+    forearm: [['e', -41, 106, 4.8, 16]],
+    erector: [['e', -4.8, 90, 3.6, 18]],
+    gmed: [['e', -21, 112, 6, 6.5]],
+    glute: [['e', -12, 126, 11, 11]],
+    hamstring: [['e', -14.5, 158, 8, 22]],
+    calf: [['e', -15, 197, 6.5, 16]]
+  }
+};
+
+function anatFigure(view, cx, p, s) {
+  const X = x => (cx + x).toFixed(1);
+  // 身形：頭、頸、軀幹、手臂、腿（灰底）
+  let g = '<g class="an-body">' +
+    '<circle cx="' + cx + '" cy="15" r="10.5"/>' +
+    '<rect x="' + X(-5) + '" y="23" width="10" height="9" rx="3"/>' +
+    '<path d="M' + X(-29) + ' 35 Q' + X(0) + ' 30 ' + X(29) + ' 35 L' + X(25) + ' 62 L' + X(21) + ' 100 L' + X(26) + ' 124 L' + X(-26) + ' 124 L' + X(-21) + ' 100 L' + X(-25) + ' 62 Z"/>' +
+    [-1, 1].map(sg => {
+      const x = v => (cx + sg * v).toFixed(1);
+      return '<path d="M' + x(31) + ' 40 L' + x(37) + ' 88 L' + x(42) + ' 128" class="an-limb" stroke-width="11"/>' +
+        '<circle cx="' + x(43) + '" cy="134" r="5"/>' +
+        '<path d="M' + x(13) + ' 122 L' + x(15) + ' 182" class="an-limb" stroke-width="19"/>' +
+        '<path d="M' + x(15) + ' 178 L' + x(15) + ' 228" class="an-limb" stroke-width="12"/>' +
+        '<ellipse cx="' + x(view === 'f' ? 16 : 15) + '" cy="234" rx="7" ry="4"/>';
+    }).join('') + '</g>';
+  const shape = (sh, cls, title) => {
+    const out = [];
+    const sides = sh[sh.length - 1] === 1 && (sh[0] === 'p' || sh[0] === 'r') ? [1] : [1, -1];
+    sides.forEach(sg => {
+      if (sh[0] === 'e') out.push('<ellipse cx="' + (cx + sg * sh[1]).toFixed(1) + '" cy="' + sh[2] + '" rx="' + sh[3] + '" ry="' + sh[4] + '"/>');
+      else if (sh[0] === 'r') out.push('<rect x="' + X(sh[1]) + '" y="' + sh[2] + '" width="' + sh[3] + '" height="' + sh[4] + '" rx="' + sh[5] + '"/>');
+      else if (sh[0] === 'p') out.push('<polygon points="' + sh[1].split(' ').map(pt => { const [a, b] = pt.split(','); return X(+a) + ',' + b; }).join(' ') + '"/>');
+    });
+    return '<g class="' + cls + '"><title>' + esc(title) + '</title>' + out.join('') + '</g>';
+  };
+  const shapes = ANAT_SHAPES[view];
+  // 所有部位先畫淡淡的輪廓，再畫協同、主要
+  Object.keys(shapes).forEach(m => shapes[m].forEach(sh => { g += shape(sh, 'an-m', MUSCLES[m].n); }));
+  s.filter(m => shapes[m]).forEach(m => shapes[m].forEach(sh => { g += shape(sh, 'an-s', MUSCLES[m].n + '（協同）'); }));
+  p.filter(m => shapes[m]).forEach(m => shapes[m].forEach(sh => { g += shape(sh, 'an-p', MUSCLES[m].n + '（主要）'); }));
+  g += '<text x="' + cx + '" y="250" text-anchor="middle" class="an-cap">' + (view === 'f' ? '正面' : '背面') + '</text>';
+  return g;
+}
+
+/* 回傳整段 HTML：圖、圖例、部位清單、原理 */
+function anatHTML(id) {
+  const a = ANAT[id];
+  if (!a) return '';
+  const names = list => list.map(m => esc(MUSCLES[m].n)).join('、');
+  let html = '<section class="anat"><h3 class="h-sub">原理</h3><p>' + esc(a.why) + '</p>';
+  if (a.p.length) {
+    const label = '主要用到：' + a.p.map(m => MUSCLES[m].n).join('、') + (a.s.length ? '；協同：' + a.s.map(m => MUSCLES[m].n).join('、') : '');
+    html += '<h3 class="h-sub">用到的肌肉</h3><figure class="anat-fig">' +
+      '<svg viewBox="0 0 260 258" role="img" aria-label="' + esc(label) + '" xmlns="http://www.w3.org/2000/svg">' +
+      anatFigure('f', 66, a.p, a.s) + anatFigure('b', 194, a.p, a.s) + '</svg>' +
+      '<figcaption><span class="an-key"><i class="k-p"></i>主要</span><span class="an-key"><i class="k-s"></i>協同</span><span class="small muted">示意圖，標出大致位置</span></figcaption></figure>' +
+      '<dl class="anat-list"><dt>主要</dt><dd>' + names(a.p) + '</dd>' + (a.s.length ? '<dt>協同</dt><dd>' + names(a.s) + '</dd>' : '') + '</dl>';
+  }
+  if (a.sys) html += '<p class="small muted">主要訓練：' + esc(a.sys) + '</p>';
+  return html + '</section>';
+}
+
+/* ---------- 示範影片 ---------- */
+function videoHTML(id, e) {
+  const v = VIDEO[id];
+  let html = '<section class="anat"><h3 class="h-sub">示範影片</h3>';
+  if (v) {
+    html += '<a class="vcard" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.v) + '" target="_blank" rel="noopener">' +
+      '<span class="v-play" aria-hidden="true">' + icon('play') + '</span><span class="v-m"><b>' + esc(v.t) + '</b>' +
+      '<span class="small">' + esc(v.ch) + (v.dur ? '　' + esc(v.dur) : '') + (v.lang === 'en' ? '　英文' : v.lang === 'zh-CN' ? '　簡體中文' : '') + '</span></span></a>';
+    if (v.note) html += '<p class="small muted">' + esc(v.note) + '</p>';
+  }
+  if (e.q) html += '<p class="small">' + ytLink(e.q, v ? '在 YouTube 找其他示範' : '在 YouTube 搜尋示範影片') + '</p>';
+  return html + '</section>';
+}
 
 /* ============================================================
    五個分頁的畫面
@@ -4496,7 +4858,7 @@ function openEx(x, rx, note, specJson) {
   body += '<div class="ex-sec"><h4>要點</h4><ul>' + e.cues.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
   if (e.err && e.err.length) body += '<div class="ex-sec err"><h4>常見錯誤</h4><ul>' + e.err.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
   body += '<div class="pills"><span class="pill">' + cat.n + '</span>' + (e.need.length ? e.need.map(k => '<span class="pill">' + NEED[k] + '</span>').join('') : '<span class="pill">不需要器材</span>') + '</div>';
-  if (e.q) body += '<p>' + ytLink(e.q, '在 YouTube 搜尋示範影片') + '</p>';
+  body += anatHTML(x) + videoHTML(x, e);
   let foot = '';
   if (specJson) {
     let sp = null; try { sp = JSON.parse(specJson); } catch (er) { sp = null; }
